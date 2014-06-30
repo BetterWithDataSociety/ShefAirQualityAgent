@@ -1,7 +1,12 @@
 @Grapes([
+    @GrabResolver(name='central', root='http://central.maven.org/maven2/'),
+    @Grab(group='org.slf4j', module='slf4j-api', version='1.7.6'),
+    @Grab(group='org.slf4j', module='jcl-over-slf4j', version='1.7.6'),
     @Grab(group='net.sourceforge.nekohtml', module='nekohtml', version='1.9.14'),
     @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.5.1'),
-    @Grab(group='xerces', module='xercesImpl', version='2.9.1') ])
+    @Grab(group='xerces', module='xercesImpl', version='2.9.1'),
+    @Grab(group='org.apache.jena', module='jena-tdb', version='1.0.2') 
+])
 
 import groovyx.net.http.*
 import static groovyx.net.http.ContentType.URLENC
@@ -61,6 +66,13 @@ def processSensorCluster(base, uri, name) {
 
     sensor_cluster_select.OPTION.each {
       println(it.@value+' '+it.text())
+
+      // For this sensor - work out if we already have a sensor header record in the database
+
+      // http://sheffieldairquality.gen2training.co.uk/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=Groundhog1/LD-Groundhog1_NO2.ic&from=000101&to=140630
+      def from="01/01/1900"
+      def to="01/06/2014"
+      println("DATA URL WILL BE ${base}/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=${it.@value}&from=${from}&to=${to}")
     }
   }
   catch ( Exception e ) {

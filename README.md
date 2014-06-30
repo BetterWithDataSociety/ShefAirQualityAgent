@@ -60,3 +60,29 @@ Each URL points to a frameset (:() which contains a form and a data panel, the f
 
 .... History? ...
 
+
+
+
+Extra notes
+
+Set grapeConfig.xml in ~/.groovy...
+
+
+
+<ivysettings>
+  <settings defaultResolver="downloadGrapes"/>
+  <resolvers>
+    <chain name="downloadGrapes">
+      <filesystem name="cachedGrapes">
+        <ivy pattern="${user.home}/.groovy/grapes/[organisation]/[module]/ivy-[revision].xml"/>
+        <artifact pattern="${user.home}/.groovy/grapes/[organisation]/[module]/[type]s/[artifact]-[revision].[ext]"/>
+      </filesystem>
+      
+      <ibiblio name="codehaus" root="http://repository.codehaus.org/" m2compatible="true"/>
+      <ibiblio name="snapshots.codehaus" root="http://snapshots.repository.codehaus.org/" m2compatible="true"/>
+      <ibiblio name="apache" root="http://people.apache.org/repo/m2-ibiblio-rsync-repository/" m2compatible="true"/>
+      <ibiblio name="apache-incubating" root="http://people.apache.org/repo/m2-incubating-repository/" m2compatible="true"/>
+      <ibiblio name="maven" root="http://repo2.maven.org/maven2/" m2compatible="true"/>
+    </chain>
+  </resolvers>
+</ivysettings>
