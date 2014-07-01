@@ -12,7 +12,8 @@
     @Grab(group='org.apache.jena', module='jena-spatial', version='1.0.1'),
     @Grab(group='org.apache.jena', module='jena-security', version='2.11.2'),
     @Grab(group='org.apache.jena', module='jena-text', version='1.0.1'),
-    @Grab(group='virtuoso', module='virtjena', version='2')
+    @Grab(group='virtuoso', module='virtjena', version='2'),
+    @Grab(group='virtuoso', module='virtjdbc', version='4.1')
 ])
 
 import groovyx.net.http.*
