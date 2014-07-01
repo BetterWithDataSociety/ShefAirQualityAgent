@@ -5,7 +5,12 @@
     @Grab(group='net.sourceforge.nekohtml', module='nekohtml', version='1.9.14'),
     @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.5.1'),
     @Grab(group='xerces', module='xercesImpl', version='2.9.1'),
-    @Grab(group='org.apache.jena', module='jena-tdb', version='1.0.2') 
+    @Grab(group='org.apache.jena', module='jena-tdb', version='1.0.2'),
+    @Grab(group='org.apache.jena', module='jena-core', version='2.11.1'),
+    @Grab(group='org.apache.jena', module='jena-arq', version='2.11.1'),
+    @Grab(group='org.apache.jena', module='jena-spatial', version='1.0.1'),
+    @Grab(group='org.apache.jena', module='jena-security', version='2.11.1'),
+    @Grab(group='org.apache.jena', module='jena-text', version='1.0.1')
 ])
 
 import groovyx.net.http.*
@@ -93,14 +98,13 @@ def processSensorCluster(base, uri, name) {
   }
 }
 
-def processSensor(sensorUri) {
+def processSensor(sensorUriString) {
   // def graph = new VirtGraph(sensorUri, "jdbc:virtuoso://localhost:1111", "dba", "dba");
   def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");
   // see https://www.google.co.uk/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCcQFjAA&url=http%3A%2F%2Fwww.w3.org%2F2005%2FIncubator%2Fssn%2Fwiki%2Fimages%2F2%2F2e%2FSemanticSensorNetworkOntology.pdf&ei=AcexU6e1CY3sO8D6gPAM&usg=AFQjCNHrD8E9qlXEk_bU0kwuLNtNbVC5ng&bvm=bv.69837884,d.ZWU
   // See http://www.w3.org/2005/Incubator/ssn/ssnx/ssn
-  Node sensorUri = Node.createURI(sensorUri);
+  Node sensorUri = Node.createURI(sensorUriString);
   Node class_sensing_device = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#SensingDevice');
-  Node class_observation_value = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#ObservationValue');
   Node class_observation_value = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#ObservationValue');
   Node type_pred = Node.createURI('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
 

@@ -1,0 +1,1 @@
+groovy -cp ./virtjena-2.jar test1.groovy
