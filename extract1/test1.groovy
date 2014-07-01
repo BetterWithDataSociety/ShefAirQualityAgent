@@ -102,7 +102,7 @@ def processSensorCluster(base, uri, name) {
 }
 
 def processSensor(sensorUriString) {
-  log.debug("Process Sensor....");
+  println("Process Sensor....");
   // def graph = new VirtGraph(sensorUri, "jdbc:virtuoso://localhost:1111", "dba", "dba");
   // def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");
   def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");

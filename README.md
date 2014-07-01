@@ -86,3 +86,11 @@ Set grapeConfig.xml in ~/.groovy...
     </chain>
   </resolvers>
 </ivysettings>
+
+
+
+All properties of all sensing devices..
+
+select distinct ?s ?p ?o where {?s ?p ?o. ?s a <http://purl.oclc.org/NET/ssnx/ssn#SensingDevice>} LIMIT 100
+
+
