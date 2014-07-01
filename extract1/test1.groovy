@@ -165,6 +165,7 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
     Node last_check = Node.createURI('uri://opensheffield.org/properties#lastCheck');
     Node has_value_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#hasValue');
     Node end_time_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#endTime');
+    Node sensor_pred = Node.createURI('uri://opensheffield.org/properties#sensor');
   
     type_map.each { key,value ->
       // Create a uri for each of our measurement types
@@ -221,6 +222,7 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
                   Node measurement_uri = Node.createURI(sensorUriString+'/'+reading_uri_format.format(date))
                   graph.add(new Triple(measurement_uri, type_pred, class_observation_value));
                   graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim())));
+                  graph.add(new Triple(measurement_uri, sensor_pred, sensorUri);
                   graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
                   // Reading was made by sensor ${sensorUri}
                   // Timestamp : date.getTime()
