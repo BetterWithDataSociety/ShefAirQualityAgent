@@ -1,16 +1,18 @@
 @Grapes([
-    @GrabResolver(name='central', root='http://central.maven.org/maven2/'),
+    // @GrabResolver(name='central', root='http://central.maven.org/maven2/'),
     @Grab(group='org.slf4j', module='slf4j-api', version='1.7.6'),
     @Grab(group='org.slf4j', module='jcl-over-slf4j', version='1.7.6'),
     @Grab(group='net.sourceforge.nekohtml', module='nekohtml', version='1.9.14'),
     @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.5.1'),
     @Grab(group='xerces', module='xercesImpl', version='2.9.1'),
     @Grab(group='org.apache.jena', module='jena-tdb', version='1.0.2'),
-    @Grab(group='org.apache.jena', module='jena-core', version='2.11.1'),
-    @Grab(group='org.apache.jena', module='jena-arq', version='2.11.1'),
+    @Grab(group='org.apache.jena', module='jena-core', version='2.11.2'),
+    @Grab(group='org.apache.jena', module='jena-arq', version='2.11.2'),
+    @Grab(group='org.apache.jena', module='jena-iri', version='1.0.2'),
     @Grab(group='org.apache.jena', module='jena-spatial', version='1.0.1'),
-    @Grab(group='org.apache.jena', module='jena-security', version='2.11.1'),
-    @Grab(group='org.apache.jena', module='jena-text', version='1.0.1')
+    @Grab(group='org.apache.jena', module='jena-security', version='2.11.2'),
+    @Grab(group='org.apache.jena', module='jena-text', version='1.0.1'),
+    @Grab(group='virtuoso', module='virtjena', version='2')
 ])
 
 import groovyx.net.http.*

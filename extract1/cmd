@@ -1,1 +1,4 @@
-groovy -cp ./virtjena-2.jar test1.groovy
+mkdir -p ~/.groovy/grapes/virtuoso/jena/driver/jars
+cp ./virtjena-2.jar ~/.groovy/grapes/virtuoso/jena/driver/jars
+
+groovy test1.groovy
