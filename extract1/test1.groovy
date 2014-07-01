@@ -222,7 +222,7 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
                   Node measurement_uri = Node.createURI(sensorUriString+'/'+reading_uri_format.format(date))
                   graph.add(new Triple(measurement_uri, type_pred, class_observation_value));
                   graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim())));
-                  graph.add(new Triple(measurement_uri, sensor_pred, sensorUri);
+                  graph.add(new Triple(measurement_uri, sensor_pred, sensorUri));
                   graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
                   // Reading was made by sensor ${sensorUri}
                   // Timestamp : date.getTime()
