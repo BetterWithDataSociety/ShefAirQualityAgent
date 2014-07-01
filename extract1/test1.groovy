@@ -30,6 +30,9 @@ import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.* ;
 import com.hp.hpl.jena.graph.*;
 
+// Query:
+// http://localhost:8890/sparql?default-graph-uri=&query=select+distinct+%3Fg+%3Fs+%3Fp+%3Fo+where+%7B+graph+%3Fg+%7B+%3Fs+%3Fp+%3Fo.+%3Fs+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23SensingDevice%3E+%7D+%7D+LIMIT+100&format=text%2Fhtml&timeout=0&debug=on
+// See https://jena.apache.org/tutorials/sparql_datasets.html
 
 // def the_base_url = "http://sheffieldairquality.gen2training.co.uk/sheffield/index.html"
 // def the_base_url = "http://sheffieldairquality.gen2training.co.uk/sheffield/content.html"
@@ -175,9 +178,20 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
     def data_url = new URL(data_url_str);
     def line = null
   
+    def process = false
     data_url.withReader { br ->
       while ( ( line = br.readLine() ) != null ) {
-        println(line);
+        if ( process ) {
+          cells = line.split(",");
+          println("DATA: ${cells}");
+        }
+        else {
+          println("HEADER...");
+        }
+
+        if ( line.startsWith('EOH') )
+          process=true
+
       }
     }
   
