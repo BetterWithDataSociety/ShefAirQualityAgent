@@ -56,24 +56,24 @@ println("Process elements...");
 
 map_element.AREA.findAll { area ->
   println("area:: uri::${area.@href} name::${area.@alt}");
-  processSensorClusterFrameset(the_base_url, '/sheffield/'+area.@href, area.@alt);
+  processSensorStationFrameset(the_base_url, '/sheffield/'+area.@href, area.@alt);
 }
 
 println("\n\n All Done");
 
 
 
-def processSensorClusterFrameset(base,uri, name) {
+def processSensorStationFrameset(base,uri, name) {
   // Fetch page
 
-  validateSensorCluster(uri,name);
+  validateSensorStation(uri,name);
 
   try {
     def sensor_cluster_frameset = new XmlParser( new org.cyberneko.html.parsers.SAXParser() ).parse(base+uri)
     sensor_cluster_frameset.FRAMESET.FRAME.each {
       if ( it.@name=='left' ) {
         println("Process sensor cluster at"+it.@src);
-        processSensorCluster(base,it.@src,name);
+        processSensorStation(base,it.@src,name);
       }
     }
   }
@@ -84,12 +84,14 @@ def processSensorClusterFrameset(base,uri, name) {
 }
 
 
-def processSensorCluster(base, uri, name) {
+def processSensorStation(base, uri, name) {
   println("Get list of sensors at sensor cluster")
   try {
     def sensor_cluster = new XmlParser( new org.cyberneko.html.parsers.SAXParser() ).parse(base+uri)
     println("Got sensor cluster page... find SELECT");
     sensor_cluster_select = sensor_cluster.depthFirst().SELECT.find { it.@name=='ic'}
+
+    //validateSensorStation("", name)
 
     sensor_cluster_select.OPTION.each {
       println(it.@value+' '+it.text())
@@ -257,8 +259,8 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
   }
 }
 
-def validateSensorCluster(uri, name) {
-  println("validateSensorCluster ${uri}, ${name}");
+def validateSensorStation(uri, name) {
+  println("validateSensorStation ${uri}, ${name}");
 }
 
 def validateSensor(uri, name, type, cluster) {
