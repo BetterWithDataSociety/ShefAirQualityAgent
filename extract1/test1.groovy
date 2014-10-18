@@ -91,6 +91,8 @@ def processSensorStation(base, uri, name) {
     println("Got sensor cluster page... find SELECT");
     sensor_cluster_select = sensor_cluster.depthFirst().SELECT.find { it.@name=='ic'}
 
+    printin("Processing sensor options...");
+
     //validateSensorStation("", name)
 
     sensor_cluster_select.OPTION.each {
