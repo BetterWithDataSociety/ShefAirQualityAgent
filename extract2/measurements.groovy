@@ -56,7 +56,9 @@ def doStep1() {
   // Query the store for all sensors on platform "scc_air_quality"
   try {
     def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");
+    Node last_check = Node.createURI('uri://opensheffield.org/properties#lastCheck');
 
+     // See https://jena.apache.org/documentation/query/app_api.html
     String queryString = 'SELECT ?sensor ?lastCheck ?sensorId ' +
                          'WHERE { ' +
                          '   ?sensor <http://purl.oclc.org/NET/ssnx/ssn#onPlatform> "scc_air_quality". ' +
@@ -65,6 +67,7 @@ def doStep1() {
                          '} ';
     Query sparql = QueryFactory.create(queryString);
     VirtuosoQueryExecution qExec = VirtuosoQueryExecutionFactory.create (sparql, graph);
+
     println("Running query..");
     try {
       ResultSet rs = qExec.execSelect();
@@ -74,10 +77,14 @@ def doStep1() {
         RDFNode lastCheck = result.get("lastCheck");
         RDFNode sensorId = result.get("sensorId");
         System.out.println("Sensor:${sensor} lastCheck:${lastCheck} sensorId:${sensorId}");
+
+        // lets try to upate lastcheck and set it to 1
+        Node n = Node.createURI(sensor.getURI())
+        // graph.remove(new Triple(n,last_check,com.hp.hpl.jena.graph.Node.ANY));
+        graph.remove(new Triple(n,last_check,NodeFactory.createLiteral(lastCheck.toString())));
+        graph.add(new Triple(n, last_check, NodeFactory.createLiteral('4')));
       }
-      println("Done looping");
     } finally {
-      println("All done ${graph}");
       qExec.close();
     }
     graph.close();
