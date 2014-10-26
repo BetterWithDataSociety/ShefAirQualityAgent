@@ -223,6 +223,7 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
       graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(sensorLocalId)));
       graph.add(new Triple(sensorUri, sensor_platform_property, Node.createLiteral('scc_air_quality')));
       graph.add(new Triple(sensorUri, responsible_party_property, scci_epa_as_a_responsible_party));
+      graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(sensorLocalId)));
 
       graph.remove(new Triple(sensorUri,max_timestamp,com.hp.hpl.jena.graph.Node.ANY));
       graph.remove(new Triple(sensorUri,last_check,com.hp.hpl.jena.graph.Node.ANY));

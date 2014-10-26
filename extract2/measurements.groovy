@@ -57,11 +57,11 @@ def doStep1() {
   try {
     def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");
 
-    String queryString = 'SELECT ?sensor ?lastCheck ?sensorId' +
+    String queryString = 'SELECT ?sensor ?lastCheck ?sensorId ' +
                          'WHERE { ' +
                          '   ?sensor <http://purl.oclc.org/NET/ssnx/ssn#onPlatform> "scc_air_quality". ' +
-                         '   ?sensor <uri://opensheffield.org/properties#sensorId> ?sensorId . ' +
-                         '   ?sensor <uri://opensheffield.org/properties#lastCheck> ?lastCheck '+
+                         '   ?sensor <uri://opensheffield.org/properties#lastCheck> ?lastCheck. '+
+                         '   ?sensor <uri://opensheffield.org/properties#sensorId> ?sensorId' +
                          '} ';
     Query sparql = QueryFactory.create(queryString);
     VirtuosoQueryExecution qExec = VirtuosoQueryExecutionFactory.create (sparql, graph);
@@ -73,11 +73,11 @@ def doStep1() {
         RDFNode sensor = result.get("sensor");
         RDFNode lastCheck = result.get("lastCheck");
         RDFNode sensorId = result.get("sensorId");
-        System.out.println("${sensor} ${lastCheck} ${sensorId}");
+        System.out.println("Sensor:${sensor} lastCheck:${lastCheck} sensorId:${sensorId}");
       }
       println("Done looping");
     } finally {
-      println("All done");
+      println("All done ${graph}");
       qExec.close();
     }
     graph.close();
