@@ -48,6 +48,9 @@ import java.text.SimpleDateFormat
 // def the_base_url = "http://sheffieldairquality.gen2training.co.uk/sheffield/content.html"
 def the_base_url = "http://sheffieldairquality.gen2training.co.uk"
 
+println("Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy\nTo avoid startup lag");
+
+
 println("Starting..");
 doStep1()
 println("Done..");
@@ -57,12 +60,14 @@ def doStep1() {
   try {
     def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");
     Node last_check = Node.createURI('uri://opensheffield.org/properties#lastCheck');
+    Node max_timestamp = Node.createURI('uri://opensheffield.org/properties#maxTimestamp');
 
      // See https://jena.apache.org/documentation/query/app_api.html
-    String queryString = 'SELECT ?sensor ?lastCheck ?sensorId ' +
+    String queryString = 'SELECT ?sensor ?lastCheck ?sensorId ?maxTimestamp ' +
                          'WHERE { ' +
                          '   ?sensor <http://purl.oclc.org/NET/ssnx/ssn#onPlatform> "scc_air_quality". ' +
                          '   ?sensor <uri://opensheffield.org/properties#lastCheck> ?lastCheck. '+
+                         '   ?sensor <uri://opensheffield.org/properties#maxTimestamp> ?maxTimestamp. '+
                          '   ?sensor <uri://opensheffield.org/properties#sensorId> ?sensorId' +
                          '} ';
     Query sparql = QueryFactory.create(queryString);
@@ -75,14 +80,22 @@ def doStep1() {
         QuerySolution result = rs.nextSolution();
         RDFNode sensor = result.get("sensor");
         RDFNode lastCheck = result.get("lastCheck");
+        RDFNode max_ts_value = result.get("maxTimestamp");
         RDFNode sensorId = result.get("sensorId");
-        System.out.println("Sensor:${sensor} lastCheck:${lastCheck} sensorId:${sensorId}");
+        System.out.println("Sensor:${sensor} lastCheck:${lastCheck} sensorId:${sensorId} maxTimestamp:${max_ts_value}");
 
         // lets try to upate lastcheck and set it to 1
         Node n = Node.createURI(sensor.getURI())
-        // graph.remove(new Triple(n,last_check,com.hp.hpl.jena.graph.Node.ANY));
-        graph.remove(new Triple(n,last_check,NodeFactory.createLiteral(lastCheck.toString())));
-        graph.add(new Triple(n, last_check, NodeFactory.createLiteral('4')));
+
+        def resut_of_get_readings = getReadings(graph, n, lastCheck.toString(), max_ts_value.toString(), sensorId.toString());
+
+        if ( resut_of_get_readings  ) {
+          if ( resut_of_get_readings.largestTimestamp ) {
+            // graph.remove(new Triple(n,last_check,com.hp.hpl.jena.graph.Node.ANY));
+            graph.remove(new Triple(n,last_check,NodeFactory.createLiteral(lastCheck.toString())));
+            graph.add(new Triple(n, last_check, NodeFactory.createLiteral("${resut_of_get_readings.largestTimestamp}".toString())));
+          }
+        }
       }
     } finally {
       qExec.close();
@@ -94,278 +107,101 @@ def doStep1() {
   }
 }
 
-def processSensorStation(base, uri, name) {
-  println("processSensorStation(${base}, ${uri}, ${name})");
+def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
+  println("getReadings for ${sensor_id} since ${last_check} higest timestamp so far is ${highest_timestamp}");
+  def num_readings = 0;
   try {
-    def sensor_cluster = new XmlParser( new org.cyberneko.html.parsers.SAXParser() ).parse(base+uri)
-    println("Got sensor cluster page... find SELECT");
-    sensor_cluster_select = sensor_cluster.depthFirst().SELECT.find { it.@name=='ic'}
-
-    //validateSensorStation("", name)
-    // def stationUri = "uri://opensheffield.org/datagrid/stations/${it.@value}"
-
-    sensor_cluster_select.OPTION.each {
-      println(it.@value+' '+it.text())
-
-      // For this sensor - work out if we already have a sensor header record in the database
-
-      // http://sheffieldairquality.gen2training.co.uk/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=Groundhog1/LD-Groundhog1_NO2.ic&from=000101&to=140630
-      def sensorUri = "uri://opensheffield.org/datagrid/sensors/${it.@value}"
-      def from="01/01/1900"
-      def to="01/06/2014"
-      println("DATA URL WILL BE ${base}/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=${it.@value}&from=${from}&to=${to}")
-
-      processSensor(sensorUri, it.@value, base);
-    }
-  }
-  catch ( Exception e ) {
-    println("ERROR...."+e.message);
-  }
-}
-
-def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
-  def type_map = [
-    'PM2.5':[
-             shortcode:'PM25',
-             description:'Particulate matter that is 2.5 micrometers in diameter',
-             uri:'http://dbpedia.org/resource/Particulates'],
-    'O3':[
-             shortcode:'O3',
-             description:'Ozone',
-             uri:'http://dbpedia.org/resource/Ozone'],
-    'NO2':[
-             shortcode:'NO2', 
-             description:'Nitrogen Dioxide',
-             uri:'http://dbpedia.org/resource/NO2'],
-    'SO2':[
-             shortcode:'SO2', 
-             description:'Sulphur Dioxide',
-             uri:'http://dbpedia.org/resource/Sulfur_dioxide'],
-    'Pressure':[
-             shortcode:'Pressure', 
-             description:'Pressure',
-             uri:'http://dbpedia.org/resource/Atmospheric_pressure'],
-    'PM25':[
-             // Ian:: Is this correct - PM25 is actually PM2.5?? thats what I've assumed
-             shortcode:'PM25',
-             description:'Particulate matter that is 2.5 micrometers or less in diameter',
-             uri:'http://dbpedia.org/resource/Particulates'],
-    'PM10':[
-             shortcode:'PM10',
-             description:'Particulate matter that is 10 micrometers or less in diameter',
-             uri:'http://dbpedia.org/resource/Particulates'],
-    'CO':[
-             shortcode:'CO',
-             description:'Carbon Monoxide',
-             uri:'http://dbpedia.org/resource/Carbon_monoxide'],
-    'Weather_Mast.ic':[
-             shortcode:'AT',
-             description:'Ambient Temperature',
-             uri:'http://dbpedia.org/resource/Outside_air_temperature'],
-  ]
-
-
-
-  try {
-    println("Process Sensor....");
-
-    // def graph = new VirtGraph(sensorUri, "jdbc:virtuoso://localhost:1111", "dba", "dba");
-    // def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");
-    def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");
-
-    def sdf = new SimpleDateFormat('yyMMddhhmm')
-    def reading_uri_format = new SimpleDateFormat('yyyyMMddhhmm')
-    def reading_date_format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
-  
     Node class_sensing_device = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#SensingDevice');
     Node class_observation_value = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#ObservationValue');
     Node type_pred = Node.createURI('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
     Node measurement_property_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#MeasurementProperty');
     Node dc_title_pred = Node.createURI('http://purl.org/metadata/dublin_core#Title');
     Node max_timestamp = Node.createURI('uri://opensheffield.org/properties#maxTimestamp');
-    Node last_check = Node.createURI('uri://opensheffield.org/properties#lastCheck');
     Node has_value_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#hasValue');
+    Node raw_value_pred = Node.createURI('uri://opensheffield.org/properties#rawValue');
     Node end_time_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#endTime');
     Node sensor_pred = Node.createURI('uri://opensheffield.org/properties#sensor');
-    Node sensor_id_property = Node.createURI('uri://opensheffield.org/properties#sensorId');
-    Node sensor_platform_property = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#onPlatform');
-    Node responsible_party_property = Node.createURI('uri://opensheffield.org/properties#responsibleParty');
-    Node qa_property = Node.createURI('uri://opensheffield.org/properties#QACriteria');
 
-    Node scci_epa_as_a_responsible_party = Node.createURI('https://www.sheffield.gov.uk/environment');
-  
-    type_map.each { key,value ->
-      // Create a uri for each of our measurement types
-      measurement_type_uri = Node.createURI(value.uri);
-      graph.add(new Triple(measurement_type_uri, type_pred, measurement_property_pred));
-      graph.add(new Triple(measurement_type_uri, dc_title_pred, NodeFactory.createLiteral(value.description)));
-    }
-  
-    // see https://www.google.co.uk/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCcQFjAA&url=http%3A%2F%2Fwww.w3.org%2F2005%2FIncubator%2Fssn%2Fwiki%2Fimages%2F2%2F2e%2FSemanticSensorNetworkOntology.pdf&ei=AcexU6e1CY3sO8D6gPAM&usg=AFQjCNHrD8E9qlXEk_bU0kwuLNtNbVC5ng&bvm=bv.69837884,d.ZWU
-    // See http://www.w3.org/2005/Incubator/ssn/ssnx/ssn
-  
-    // Fetch all entries since last_check
-    def from="01/01/1900"
-    def to="01/12/2014"
-    def data_url_str = "${sensorDataBaseUrl}/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=${sensorLocalId}&from=${from}&to=${to}"
-    // println("Attempting to fetch ${data_url_str}");
+    def sdf = new SimpleDateFormat('yyMMddhhmm')
+    def reading_uri_format = new SimpleDateFormat('yyyyMMddhhmm')
+    def reading_date_format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+
+    // Take off a day - to get any 
+    def from  = sdf.format(new Date(Integer.parseInt(highest_timestamp)))
+    // Add an hour on - we will get all the readings so far today that way
+    def to  = sdf.format(new Date(System.currentTimeMillis()+(1000*60*60*24)));
+    def data_url_str = "http://sheffieldairquality.gen2training.co.uk/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=${sensor_id}&from=${from}&to=${to}"
+    // Formatted as yymmdd
+    println("data url: ${data_url_str}");
+
     def data_url = new URL(data_url_str);
     def line = null
+    def biggest_date = 0;
+    def row = 0;
 
-    def identified_type = null;
-    type_map.each {
-      // println("Consider type ${it.key} in ${sensorLocalId}");
-      if ( identified_type == null && sensorLocalId.toLowerCase().contains(it.key.toLowerCase()) ) {
-        identified_type = it.value;
+    def process = false
+    data_url.withReader { br ->
+      while ( ( line = br.readLine() ) != null ) {
+        if ( line.startsWith( 'EOF') )
+          process=false;
+
+        if ( process ) {
+          row++
+          try {
+              cells = line.split(",");
+              // println("DATA: ${cells}");
+              def date = sdf.parse(cells[0]+cells[1]);
+              // def hour = cells[1].substring(0,2);
+              // def min = cells[1].substring(2,4);
+
+              int i=2;
+              while ( i < cells.length ) {
+                // println("${date} \"${cells[i]}\" (out of ${cells.length})");
+                if ( cells[i].trim().length() > 0 ) {
+                  // println("Publish.. ${sensor_id} ${reading_uri_format.format(date)} ${cells[i]}");
+                  Node measurement_uri = Node.createURI(sensor_node.toString()+'/'+reading_uri_format.format(date))
+                  graph.add(new Triple(measurement_uri, type_pred, class_observation_value));
+                  graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(cells[i].trim())));
+                  graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim())));
+                  graph.add(new Triple(measurement_uri, sensor_pred, sensor_node));
+                  graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
+                  num_readings++;
+
+                  // Reading was made by sensor ${sensorUri}
+                  // Timestamp : date.getTime()
+                  // Measurement : cells[i].trim()
+                  if ( date.getTime() > biggest_date ) { 
+                    biggest_date = date.getTime()
+                  }
+                }
+                i++
+              }
+
+          }
+          catch ( Exception e ) {
+            e.printStackTrace()
+          }
+        }
+        else {
+        }
+
+        if ( line.startsWith('EOH') ) {
+          process=true
+        }
+
+        if ( ( row % 10000 ) == 0 ) {
+          println("${row} rows, ${num_readings} observationsn for ${sensor_id} so far. Max timestamp: ${reading_uri_format.format(new Date(biggest_date))}");
+        }
       }
     }
-  
-    if ( identified_type ) {
-      Node sensorUri = Node.createURI(sensorUriString);
-      graph.add(new Triple(sensorUri, type_pred, class_sensing_device));
-      graph.add(new Triple(sensorUri, measurement_property_pred, Node.createURI(identified_type.uri)));
-      graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(sensorLocalId)));
-      graph.add(new Triple(sensorUri, sensor_platform_property, Node.createLiteral('scc_air_quality')));
-      graph.add(new Triple(sensorUri, responsible_party_property, scci_epa_as_a_responsible_party));
-      graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(sensorLocalId)));
-
-      graph.remove(new Triple(sensorUri,max_timestamp,com.hp.hpl.jena.graph.Node.ANY));
-      graph.remove(new Triple(sensorUri,last_check,com.hp.hpl.jena.graph.Node.ANY));
-      graph.add(new Triple(sensorUri, max_timestamp, NodeFactory.createLiteral('0')));
-      graph.add(new Triple(sensorUri, last_check, NodeFactory.createLiteral('0')));
-    }
-    else {
-      println("Not processed - unable to identify measurement type for ${sensorLocalId}");
-    }
-  
-    graph.close();
+    println("Max timestamp for ${sensor_id} : ${reading_uri_format.format(new Date(biggest_date))} added ${num_readings} observations");
   }
   catch ( Exception e ) {
     e.printStackTrace();
   }
-}
 
-def validateSensorStation(uri, name) {
-  println("validateSensorStation ${uri}, ${name}");
-}
-
-def validateSensor(uri, name, type, cluster) {
-  println("validateSensor ${uri}, ${name}, ${type}, ${cluster}");
-  def result = null;
-  result
-}
-
-def validateReading(sensorUri, date, time, value) {
-  println("validateSensor ${sensorUri}, ${date}, ${time}, ${value}");
-}
-
-def processStaticProperties() {
-  //
-  // Firshill, Orphanage Road (groundhog1), - lat 53.402664,-1.463957
-  // Tinsley Infants School (groundhog2), - 53.412365,-1.398938
-  // Lowfield Junior and Infant School (groundhog3), - 53.364472,-1.471665
-  // Wicker (groundhog4), 53.3871492,-1.4624831
-  // Sheaf Square, opposite railway station (groundhog5), 53.3780314,-1.4649311
-  // City Centre - Charter Square, 53.3784569,-1.4726883
-  // Tinsley - Ingfield Avenue. 53.411002,-1.396479
-
-  // http://www.w3.org/2003/01/geo/wgs84_pos#lat
-  // http://www.w3.org/2003/01/geo/wgs84_pos#long
-  try {
-    def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");
-    Node lat_pred = Node.createURI('http://www.w3.org/2003/01/geo/wgs84_pos#lat');
-    Node lon_pred = Node.createURI('http://www.w3.org/2003/01/geo/wgs84_pos#long');
-  
-    def sensors = [
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Weather_Mast/Weather_Mast.ic',
-        lat:'53.3932183',  // II: This is a very rough (Hand placed) guess based on SCC map
-        lon:'-1.429708' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic',
-        lat:'53.412365',
-        lon:'-1.398938' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Sheffield_Tinsley/LD-Sheffield_Tinsley_CO.ic',
-        lat:'53.412365',
-        lon:'-1.398938' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Sheffield_Centre/LD-Sheffield_Centre_SO2_15min.ic',
-        lat:'53.3784569',
-        lon:'-1.4726883' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Sheffield_Centre/LD-Sheffield_Centre_PM25_Gravimetric.ic',
-        lat:'53.3784569',
-        lon:'-1.4726883' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Sheffield_Centre/LD-Sheffield_Centre_PM10_Gravimetric.ic',
-        lat:'53.3784569',
-        lon:'-1.4726883' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Sheffield_Centre/LD-Sheffield_Centre_O3.ic',
-        lat:'53.3784569',
-        lon:'-1.4726883' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Sheffield_Centre/LD-Sheffield_Centre_NO2.ic',
-        lat:'53.3784569',
-        lon:'-1.4726883' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Sheffield_Centre/LD-Sheffield_Centre_CO.ic',
-        lat:'53.3784569',
-        lon:'-1.4726883' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog5/LD-Groundhog5_PM10_Gravimetric.ic',
-        lat:'53.3780314',
-        lon:'-1.4649311' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog5/LD-Groundhog5_O3.ic',
-        lat:'53.3780314',
-        lon:'-1.4649311' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog5/LD-Groundhog5_NO2.ic',
-        lat:'53.3780314',
-        lon:'-1.4649311' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog4/LD-Groundhog4_PM10_Gravimetric.ic',
-        lat:'53.3871492',
-        lon:'-1.4624831' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog4/LD-Groundhog4_O3.ic',
-        lat:'53.3871492',
-        lon:'-1.4624831' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog4/LD-Groundhog4_NO2.ic',
-        lat:'53.3871492',
-        lon:'-1.4624831' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog3/LD-Groundhog3_SO2_15min.ic',
-        lat:'53.364472',
-        lon:'-1.471665' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog3/LD-Groundhog3_PM10_Gravimetric.ic',
-        lat:'53.364472',
-        lon:'-1.471665' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog3/LD-Groundhog3_NO2.ic',
-        lat:'53.364472',
-        lon:'-1.471665' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog2/LD-Groundhog2_SO2_15min.ic',
-        lat:'53.412365',
-        lon:'-1.398938' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog2/LD-Groundhog2_PM2.5.ic',
-        lat:'53.412365',
-        lon:'-1.398938' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog2/LD-Groundhog2_PM10_Gravimetric.ic',
-        lat:'53.412365',
-        lon:'-1.398938' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog2/LD-Groundhog2_NO2.ic',
-        lat:'53.412365',
-        lon:'-1.398938' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog1/LD-Groundhog1_SO2_15min.ic',
-        lat:'53.402664',
-        lon:'-1.463957' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog1/LD-Groundhog1_Pressure.ic',
-        lat:'53.402664',
-        lon:'-1.463957' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog1/LD-Groundhog1_PM10_Gravimetric.ic',
-        lat:'53.402664',
-        lon:'-1.463957' ],
-      [ uri:'uri://opensheffield.org/datagrid/sensors/Groundhog1/LD-Groundhog1_NO2.ic',
-        lat:'53.402664',
-        lon:'-1.463957' ],
-    ]
-
-    sensors.each {
-      Node sensorUri = Node.createURI(it.uri);
-      graph.add(new Triple(sensorUri, lat_pred, Node.createLiteral(it.lat)));
-      graph.add(new Triple(sensorUri, lon_pred, Node.createLiteral(it.lon)));
-    }
-  
-    graph.close();
-  }
-  catch ( Exception e ) {
-    e.printStackTrace();
-  }
+  return [
+    numObservationsAdded:num_readings,
+    largestTimestamp:biggest_date
+  ]
 }
