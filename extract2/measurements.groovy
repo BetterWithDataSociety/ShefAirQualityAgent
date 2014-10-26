@@ -111,6 +111,7 @@ def doStep1() {
 def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
   println("getReadings for ${sensor_id} since ${last_check} higest timestamp so far is ${highest_timestamp}");
   def num_readings = 0;
+  def biggest_date = 0;
   try {
     Node class_sensing_device = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#SensingDevice');
     Node class_observation_value = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#ObservationValue');
@@ -137,7 +138,6 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
 
     def data_url = new URL(data_url_str);
     def line = null
-    def biggest_date = 0;
     def row = 0;
 
     def process = false
