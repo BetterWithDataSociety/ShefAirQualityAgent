@@ -34,6 +34,7 @@ import com.hp.hpl.jena.query.*;
 import com.hp.hpl.jena.rdf.model.* ;
 import com.hp.hpl.jena.graph.*;
 import java.text.SimpleDateFormat
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
 
 // Query:
 // http://localhost:8890/sparql?default-graph-uri=&query=select+distinct+%3Fg+%3Fs+%3Fp+%3Fo+where+%7B+graph+%3Fg+%7B+%3Fs+%3Fp+%3Fo.+%3Fs+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23SensingDevice%3E+%7D+%7D+LIMIT+100&format=text%2Fhtml&timeout=0&debug=on
@@ -161,8 +162,8 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
                   // println("Publish.. ${sensor_id} ${reading_uri_format.format(date)} ${cells[i]}");
                   Node measurement_uri = Node.createURI(sensor_node.toString()+'/'+reading_uri_format.format(date))
                   graph.add(new Triple(measurement_uri, type_pred, class_observation_value));
-                  graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(cells[i].trim())));
-                  graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim())));
+                  graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
+                  graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
                   graph.add(new Triple(measurement_uri, sensor_pred, sensor_node));
                   graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
                   num_readings++;

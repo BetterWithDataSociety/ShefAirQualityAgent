@@ -2,35 +2,4 @@ Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy
 To avoid startup lag
 Starting..
 Running query..
-Sensor:uri://opensheffield.org/datagrid/sensors/Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic lastCheck:4 sensorId:Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic maxTimestamp:0
-getReadings for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic since 4 higest timestamp so far is 0
-data url: http://sheffieldairquality.gen2training.co.uk/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic&from=7001010100&to=1410270455
-0 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-0 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-0 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-0 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-0 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-0 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-10000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-20000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-30000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-40000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-50000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-60000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-70000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-80000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-90000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-100000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-110000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-120000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-130000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-140000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-150000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-160000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-170000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-180000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-190000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-200000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-210000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-220000 rows, 0 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 197001010100
-230000 rows, 1644 observationsn for Sheffield_Tinsley/LD-Sheffield_Tinsley_NO2.ic so far. Max timestamp: 199603280120
+Done..
