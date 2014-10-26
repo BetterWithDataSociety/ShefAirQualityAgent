@@ -1,5 +1,6 @@
 @Grapes([
     // @GrabResolver(name='central', root='http://central.maven.org/maven2/'),
+    @GrabResolver(name='mvnRepository', root='http://central.maven.org/maven2/'),
     @Grab(group='org.slf4j', module='slf4j-api', version='1.7.6'),
     @Grab(group='org.slf4j', module='jcl-over-slf4j', version='1.7.6'),
     @Grab(group='net.sourceforge.nekohtml', module='nekohtml', version='1.9.14'),
@@ -183,7 +184,11 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
     Node end_time_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#endTime');
     Node sensor_pred = Node.createURI('uri://opensheffield.org/properties#sensor');
     Node sensor_id_property = Node.createURI('uri://opensheffield.org/properties#sensorId');
-    Node sensor_platform_property = Node.createURI('uri://opensheffield.org/properties#sensorPlatform');
+    Node sensor_platform_property = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#onPlatform');
+    Node responsible_party_property = Node.createURI('uri://opensheffield.org/properties#responsibleParty');
+    Node qa_property = Node.createURI('uri://opensheffield.org/properties#QACriteria');
+
+    Node scci_epa_as_a_responsible_party = Node.createURI('https://www.sheffield.gov.uk/environment');
   
     type_map.each { key,value ->
       // Create a uri for each of our measurement types
@@ -217,6 +222,7 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
       graph.add(new Triple(sensorUri, measurement_property_pred, Node.createURI(identified_type.uri)));
       graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(sensorLocalId)));
       graph.add(new Triple(sensorUri, sensor_platform_property, Node.createLiteral('scc_air_quality')));
+      graph.add(new Triple(sensorUri, responsible_party_property, scci_epa_as_a_responsible_party));
 
       graph.remove(new Triple(sensorUri,max_timestamp,com.hp.hpl.jena.graph.Node.ANY));
       graph.remove(new Triple(sensorUri,last_check,com.hp.hpl.jena.graph.Node.ANY));
