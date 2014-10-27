@@ -47,35 +47,12 @@ def doStep1() {
     Node last_check = Node.createURI('uri://opensheffield.org/properties#lastCheck');
     Node max_timestamp = Node.createURI('uri://opensheffield.org/properties#maxTimestamp');
 
-     // See https://jena.apache.org/documentation/query/app_api.html
-    String queryString = 'SELECT ?sensor ?maxTimestamp ' +
-                         'WHERE { ' +
-                         '   ?sensor <http://purl.oclc.org/NET/ssnx/ssn#onPlatform> "scc_air_quality" . ' +
-                         '   OPTIONAL { ?sensor <uri://opensheffield.org/properties#maxTimestamp> ?maxTimestamp }  '+
-                         '} ';
-    Query sparql = QueryFactory.create(queryString);
-    VirtuosoQueryExecution qExec = VirtuosoQueryExecutionFactory.create (sparql, graph);
+1414395121067
 
-    println("Running query..");
-    try {
-      ResultSet rs = qExec.execSelect();
-      for ( ; rs.hasNext() ; ) {
-        QuerySolution result = rs.nextSolution();
-        RDFNode sensor = result.get("sensor");
-        RDFNode maxTimestamp = result.get("maxTimestamp");
-
-        println("${sensor} ${maxTimestamp?:'NULL'}");
-        // lets try to upate lastcheck and set it to 1
-        Node n = Node.createURI(sensor.getURI())
+        Node n = Node.createURI("uri://opensheffield.org/datagrid/sensors/Groundhog3/LD-Groundhog3_NO2.ic");
  
-        if ( maxTimestamp == null ) {
-        //    graph.remove(new Triple(n,max_timestamp,NodeFactory.createLiteral("0")));
-          graph.add(new Triple(n, max_timestamp, NodeFactory.createLiteral("0".toString())));
-        }
-      }
-    } finally {
-      qExec.close();
-    }
+          graph.remove(new Triple(n,last_check,NodeFactory.createLiteral("1414395121067")));
+        //   graph.add(new Triple(n, max_timestamp, NodeFactory.createLiteral("0".toString())));
     graph.close();
   }
   catch ( Exception e ) {

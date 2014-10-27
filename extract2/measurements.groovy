@@ -55,6 +55,7 @@ println("Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy\
 println("Starting..");
 doStep1()
 println("Done..");
+System.exit(0);
 
 def doStep1() {
   // Query the store for all sensors on platform "scc_air_quality"
@@ -110,6 +111,8 @@ def doStep1() {
   }
   catch ( Exception e ) {
     e.printStackTrace();
+  }
+  finally {
   }
 }
 
