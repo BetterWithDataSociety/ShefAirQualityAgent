@@ -68,8 +68,8 @@ def doStep1() {
                          'WHERE { ' +
                          '   ?sensor <http://purl.oclc.org/NET/ssnx/ssn#onPlatform> "scc_air_quality". ' +
                          '   ?sensor <uri://opensheffield.org/properties#lastCheck> ?lastCheck. '+
-                         '   ?sensor <uri://opensheffield.org/properties#maxTimestamp> ?maxTimestamp. '+
-                         '   ?sensor <uri://opensheffield.org/properties#sensorId> ?sensorId' +
+                         '   ?sensor <uri://opensheffield.org/properties#sensorId> ?sensorId . ' +
+                         '   OPTIONAL { ?sensor <uri://opensheffield.org/properties#maxTimestamp> ?maxTimestamp } . '+
                          '} ';
     Query sparql = QueryFactory.create(queryString);
     VirtuosoQueryExecution qExec = VirtuosoQueryExecutionFactory.create (sparql, graph);
@@ -83,18 +83,23 @@ def doStep1() {
         RDFNode lastCheck = result.get("lastCheck");
         RDFNode max_ts_value = result.get("maxTimestamp");
         RDFNode sensorId = result.get("sensorId");
-        System.out.println("Sensor:${sensor} lastCheck:${lastCheck} sensorId:${sensorId} maxTimestamp:${max_ts_value}");
+        // System.out.println("Sensor:${sensor} lastCheck:${lastCheck} sensorId:${sensorId} maxTimestamp:${max_ts_value}");
 
         // lets try to upate lastcheck and set it to 1
         Node n = Node.createURI(sensor.getURI())
 
-        def resut_of_get_readings = getReadings(graph, n, lastCheck.toString(), max_ts_value.toString(), sensorId.toString());
+        // def resut_of_get_readings = getReadings(graph, n, lastCheck.toString(), max_ts_value.toString(), sensorId.toString());
+        def resut_of_get_readings = getReadings(graph, n, lastCheck.toString(), max_ts_value, sensorId.toString());
 
         if ( resut_of_get_readings  ) {
           if ( resut_of_get_readings.largestTimestamp ) {
             // graph.remove(new Triple(n,last_check,com.hp.hpl.jena.graph.Node.ANY));
             graph.remove(new Triple(n,last_check,NodeFactory.createLiteral(lastCheck.toString())));
-            graph.add(new Triple(n, last_check, NodeFactory.createLiteral("${resut_of_get_readings.largestTimestamp}".toString())));
+            graph.add(new Triple(n, last_check, NodeFactory.createLiteral("${System.currentTimeMillis()}".toString())));
+            graph.remove(new Triple(n,max_timestamp,NodeFactory.createLiteral("0")));
+            graph.remove(new Triple(n,max_timestamp,NodeFactory.createLiteral(max_ts_value.toString())));
+            println("Set last timestamp to ${resut_of_get_readings.largestTimestamp}");
+            graph.add(new Triple(n, max_timestamp, NodeFactory.createLiteral("${resut_of_get_readings.largestTimestamp}".toString())));
           }
         }
       }
@@ -129,7 +134,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
     def reading_date_format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 
     // Take off a day - to get any 
-    def from  = sdf.format(new Date(Integer.parseInt(highest_timestamp)))
+    def from  = sdf.format(new Date(Long.parseLong(highest_timestamp)))
     // Add an hour on - we will get all the readings so far today that way
     def to  = sdf.format(new Date(System.currentTimeMillis()+(1000*60*60*24)));
     def data_url_str = "http://sheffieldairquality.gen2training.co.uk/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=${sensor_id}&from=${from}&to=${to}"
