@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<html xmlns="http://www.w3.org/1999/xhtml"> 
+  <head> 
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/> 
+    <title> 
+    Google Visualization
+    </title> 
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script> 
+    <script type="text/javascript"> 
+      google.load('visualization', '1', {packages: ['geomap']});
+    </script> 
+    <script type="text/javascript"> 
+    var visualization;
+ 
+    function drawVisualization() {
+      // To see the data that this visualization uses, browse to
+      // http://spreadsheets.google.com/ccc?key=pCQbetd-CptGXxxQIG7VFIQ  
+      var query = new google.visualization.Query('http://data-gov.tw.rpi.edu/ws/sparqlproxy.php?query-uri=http%3A%2F%2Fdata-gov.tw.rpi.edu%2Fsparql%2Fquakemap.sparql&output=gvds&callback=&tqx=&service-uri=http%3A%2F%2Fonto.rpi.edu%2Fjoseki%2Fsparql');
+      
+     
+      // Send the query with a callback function.
+      
+      query.send(handleQueryResponse);
+       
+    }
+    
+    function handleQueryResponse(response) {
+ 
+      if (response.isError()) {
+        alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+        return;
+      }
+        var options=null;
+      options = {};options['dataMode'] = 'markers';
+  var data = response.getDataTable();
+ 
+      visualization = new google.visualization.GeoMap(document.getElementById('visualization'));
+      visualization.draw( data ,options);
+    }
+ 
+    google.setOnLoadCallback(drawVisualization);
+    </script> 
+  </head> 
+  <body style="font-family: Arial;border: 0 none;"> 
+    <div id="visualization" style="height: 400px; width: 400px;"></div>  
+  </body> 
+</html>
