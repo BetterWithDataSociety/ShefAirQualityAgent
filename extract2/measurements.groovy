@@ -137,7 +137,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
     def reading_date_format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 
     // Take off a day - to get any 
-    def from  = sdf.format(new Date(Long.parseLong(highest_timestamp)))
+    def from  = sdf.format(new Date(Long.parseLong(highest_timestamp.toString())))
     // Add an hour on - we will get all the readings so far today that way
     def to  = sdf.format(new Date(System.currentTimeMillis()+(1000*60*60*24)));
     def data_url_str = "http://sheffieldairquality.gen2training.co.uk/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=${sensor_id}&from=${from}&to=${to}"
