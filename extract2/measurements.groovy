@@ -179,10 +179,13 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
                   // Reading was made by sensor ${sensorUri}
                   // Timestamp : date.getTime()
                   // Measurement : cells[i].trim()
-                  if ( date.getTime() > biggest_date ) { 
-                    biggest_date = date.getTime()
-                  }
                 }
+
+                // Even if the reading has no data, it's still the biggest one we have seen.
+                if ( date.getTime() > biggest_date ) { 
+                  biggest_date = date.getTime()
+                }
+
                 i++
               }
 
