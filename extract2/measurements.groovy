@@ -150,6 +150,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
 
     def process = false
     data_url.withReader { br ->
+      println("Reading response lines, query was \n"+data_url_str+"\n\n");
       while ( ( line = br.readLine() ) != null ) {
         if ( line.startsWith( 'EOF') )
           process=false;
@@ -179,11 +180,12 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
                   // Reading was made by sensor ${sensorUri}
                   // Timestamp : date.getTime()
                   // Measurement : cells[i].trim()
-                }
 
-                // Even if the reading has no data, it's still the biggest one we have seen.
-                if ( date.getTime() > biggest_date ) { 
-                  biggest_date = date.getTime()
+                  // Even if the reading has no data, it's still the biggest one we have seen.
+                  // Not true because future readings have not been taken yet. Sucks!
+                  if ( date.getTime() > biggest_date ) { 
+                    biggest_date = date.getTime()
+                  }
                 }
 
                 i++
