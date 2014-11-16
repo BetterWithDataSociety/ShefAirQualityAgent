@@ -1,0 +1,11 @@
+# Data is date,hour,measurement
+set key off
+set datafile separator ","
+
+set xlabel "Hour"
+set ylabel "Measurement"
+set zlabel "Date"
+
+# splot 'data.csv' every ::1 using 3:1:2 with points palette pointsize 3 pointtype 7
+splot 'data.csv' every ::1 using 1:2:3 with points palette pointsize 3 pointtype 7
+pause -1

@@ -1,0 +1,22 @@
+select max(?day), max(?hour), avg(?observationValue)
+where {
+  graph ?g {
+    ?s <uri://opensheffield.org/properties#sensor>     <uri://opensheffield.org/datagrid/sensors/Groundhog1/LD-Groundhog1_NO2.ic> .
+    ?s a <http://purl.oclc.org/NET/ssnx/ssn#ObservationValue> .
+    ?s <http://purl.oclc.org/NET/ssnx/ssn#endTime> ?observationTime.
+    ?s <http://purl.oclc.org/NET/ssnx/ssn#hasValue> ?observationValue .
+    BIND (bif:subseq( str( ?observationTime ),0,10) AS ?day) .
+    BIND (bif:subseq( str( ?observationTime ),11,13) AS ?hour) .
+    BIND (bif:subseq( str( ?observationTime ),0,13) AS ?dayhour) .
+    FILTER ( xsd:date(?observationTime) >= xsd:date("2014-10-15") && xsd:date(?observationTime) <= xsd:date("2014-11-15") )  
+  }
+}
+GROUP BY ?dayhour
+ORDER BY ?dayhour
+LIMIT 10000
+
+
+
+
+https://apps.opensheffield.org/sparql?default-graph-uri=&query=select+max%28%3Fday%29%2C+max%28%3Fhour%29%2C+avg%28%3FobservationValue%29%0D%0Awhere+%7B%0D%0A++graph+%3Fg+%7B%0D%0A++++%3Fs+%3Curi%3A%2F%2Fopensheffield.org%2Fproperties%23sensor%3E+++++%3Curi%3A%2F%2Fopensheffield.org%2Fdatagrid%2Fsensors%2FGroundhog1%2FLD-Groundhog1_NO2.ic%3E+.%0D%0A++++%3Fs+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23ObservationValue%3E+.%0D%0A++++%3Fs+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23endTime%3E+%3FobservationTime.%0D%0A++++%3Fs+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23hasValue%3E+%3FobservationValue+.%0D%0A++++BIND+%28bif%3Asubseq%28+str%28+%3FobservationTime+%29%2C0%2C10%29+AS+%3Fday%29+.%0D%0A++++BIND+%28bif%3Asubseq%28+str%28+%3FobservationTime+%29%2C11%2C13%29+AS+%3Fhour%29+.%0D%0A++++BIND+%28bif%3Asubseq%28+str%28+%3FobservationTime+%29%2C0%2C13%29+AS+%3Fdayhour%29+.%0D%0A++++FILTER+%28+xsd%3Adate%28%3FobservationTime%29+%3E%3D+xsd%3Adate%28%222014-10-15%22%29+%26%26+xsd%3Adate%28%3FobservationTime%29+%3C%3D+xsd%3Adate%28%222014-11-15%22%29+%29++%0D%0A++%7D%0D%0A%7D%0D%0AGROUP+BY+%3Fdayhour%0D%0AORDER+BY+%3Fdayhour%0D%0ALIMIT+10000&format=text%2Fcsv&timeout=0&debug=on
+
