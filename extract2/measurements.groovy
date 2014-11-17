@@ -160,21 +160,22 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
           try {
               cells = line.split(",");
               // println("DATA: ${cells}");
-              def date = sdf.parse(cells[0]+cells[1]);
+              def date = sdf.parse(cells[0].trim()+cells[1].trim());
+              println("${cells[0].trim()+cells[1].trim()} == ${date}");
               // def hour = cells[1].substring(0,2);
               // def min = cells[1].substring(2,4);
+              def parsed_date = reading_uri_format.format(date)
 
               int i=2;
               while ( i < cells.length ) {
-                // println("${date} \"${cells[i]}\" (out of ${cells.length})");
                 if ( cells[i].trim().length() > 0 ) {
                   // println("Publish.. ${sensor_id} ${reading_uri_format.format(date)} ${cells[i]}");
-                  Node measurement_uri = Node.createURI(sensor_node.toString()+'/'+reading_uri_format.format(date))
+                  Node measurement_uri = Node.createURI(sensor_node.toString()+'/'+parsed_date);
                   graph.add(new Triple(measurement_uri, type_pred, class_observation_value));
                   graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
                   graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
                   graph.add(new Triple(measurement_uri, sensor_pred, sensor_node));
-                  graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
+                  graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${parsed_date}")));
                   num_readings++;
 
                   // Reading was made by sensor ${sensorUri}

@@ -8,7 +8,8 @@ set zlabel "Measurement"
 
 set ydata time
 set timefmt "%Y-%m-%d %H:%M:%S"
+set pm3d
 
 # splot 'data.csv' every ::1 using 3:1:2 with points palette pointsize 3 pointtype 7
-splot 'data.csv' every ::1 using 1:2:3 with lines
+splot 'data.csv' every ::1 using 1:2:3 with pm3d
 pause -1
