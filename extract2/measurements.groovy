@@ -175,7 +175,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
                   graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
                   graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
                   graph.add(new Triple(measurement_uri, sensor_pred, sensor_node));
-                  graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${parsed_date}")));
+                  graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format(date)}")));
                   num_readings++;
 
                   // Reading was made by sensor ${sensorUri}
