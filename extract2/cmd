@@ -1,3 +1,11 @@
 copy the grapeconfig/virtuoso dir to ~/.groovy/grapes/virtuoso
 
 groovy test1.groovy
+
+
+
+To do a full reset
+
+isql
+
+RDF_GLOBAL_RESET ();
