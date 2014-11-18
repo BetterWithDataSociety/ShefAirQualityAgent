@@ -132,8 +132,8 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
     Node end_time_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#endTime');
     Node sensor_pred = Node.createURI('uri://opensheffield.org/properties#sensor');
 
-    def sdf = new SimpleDateFormat('yyMMddhhmm')
-    def reading_uri_format = new SimpleDateFormat('yyyyMMddhhmm')
+    def sdf = new SimpleDateFormat('yyMMddHHmm')
+    def reading_uri_format = new SimpleDateFormat('yyyyMMDDHHmm')
     def reading_date_format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 
     // Take off a day - to get any 
@@ -175,7 +175,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
                   graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
                   graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
                   graph.add(new Triple(measurement_uri, sensor_pred, sensor_node));
-                  graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format(date)}")));
+                  graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
                   num_readings++;
 
                   // Reading was made by sensor ${sensorUri}
