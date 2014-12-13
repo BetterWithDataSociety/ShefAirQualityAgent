@@ -1,0 +1,43 @@
+uri://opensheffield.org/datagrid/sensors/Sheffield_Centre/LD-Sheffield_Centre_PM25_Gravimetric.ic
+uri://opensheffield.org/datagrid/sensors/Sheffield_Centre/LD-Sheffield_Centre_PM10_Gravimetric.ic
+uri://opensheffield.org/datagrid/sensors/Groundhog5/LD-Groundhog5_PM10_Gravimetric.ic
+uri://opensheffield.org/datagrid/sensors/Groundhog4/LD-Groundhog4_PM10_Gravimetric.ic
+uri://opensheffield.org/datagrid/sensors/Groundhog3/LD-Groundhog3_PM10_Gravimetric.ic
+uri://opensheffield.org/datagrid/sensors/Groundhog2/LD-Groundhog2_PM2.5.ic
+uri://opensheffield.org/datagrid/sensors/Groundhog2/LD-Groundhog2_PM10_Gravimetric.ic
+uri://opensheffield.org/datagrid/sensors/Groundhog1/LD-Groundhog1_PM10_Gravimetric.ic
+
+http://dbpedia.org/resource/PM_2.5
+http://dbpedia.org/resource/PM_10
+
+
+SPARQL WITH <uri://opensheffield.org/datagrid/sensors>
+DELETE { 
+<uri://opensheffield.org/datagrid/sensors/Groundhog2/LD-Groundhog2_PM2.5_Gravimetric.ic> <http://purl.oclc.org/NET/ssnx/ssn#MeasurementProperty> <http://dbpedia.org/resource/Particulates> 
+}
+INSERT {
+<uri://opensheffield.org/datagrid/sensors/Groundhog2/LD-Groundhog2_PM2.5_Gravimetric.ic> <http://purl.oclc.org/NET/ssnx/ssn#MeasurementProperty> <http://dbpedia.org/resource/PM_2.5>
+}
+
+
+
+SPARQL WITH <uri://opensheffield.org/datagrid/sensors>
+DELETE {
+<uri://opensheffield.org/datagrid/sensors/Sheffield_Centre/LD-Sheffield_Centre_PM25_Gravimetric.ic> <http://purl.oclc.org/NET/ssnx/ssn#MeasurementProperty> <http://dbpedia.org/resource/Particulates>
+}
+INSERT {
+<uri://opensheffield.org/datagrid/sensors/Sheffield_Centre/LD-Sheffield_Centre_PM25_Gravimetric.ic> <http://purl.oclc.org/NET/ssnx/ssn#MeasurementProperty> <http://dbpedia.org/resource/PM_2.5>
+}
+
+
+SPARQL WITH <uri://opensheffield.org/datagrid/sensors>
+DELETE {
+?sensor <http://purl.oclc.org/NET/ssnx/ssn#MeasurementProperty> ?property
+}
+INSERT {
+}
+WHERE {
+?sensor <http://purl.oclc.org/NET/ssnx/ssn#MeasurementProperty> ?property
+}
+
+
