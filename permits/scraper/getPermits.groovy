@@ -37,9 +37,11 @@ System.err.println("Run with \"groovy -Dgroovy.grape.autoDownload=false getPermi
 System.out.print('"permitReference"');
 System.out.print(',"permitName"');
 System.out.print(',"address"');
+System.out.print(',"postcode"');
 System.out.print(',"permitUrl"');
 System.out.print(',"section"');
 System.out.print(',"type"');
+System.out.print(',"subtype"');
 System.out.println();
 
 def two_a_base_url='https://www.sheffield.gov.uk/environment/environmental-health/pollution/environmental-permitting/public-register/2a-processes.html';
@@ -122,16 +124,25 @@ def part_b_other_processes = part_b_response_page.depthFirst().findAll{it.name()
 part_b_other_processes.each { part_b_other_process ->
   // System.err.println("Process part B type for ${part_b_other_process.@href}");
   def name=part_b_other_process.text();
-  def address=part_b_other_process.parent()?.p[0]?.text();
+  def address=part_b_other_process.parent()?.P[0]?.text();
 
   // Other permit urls have the form
   // /dms/scc/management/corporate-communications/documents/environment/pollution/environmental-permitting/permits/b/other/timber/arnold-laver/Arnold%20Laver%20and%20Co%20Ltd.pdf
   def url_components = part_b_other_process.@href.substring(118).split("/");
   def type = url_components[0]
-  def owner = url_components[1].replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_')
+  def subtype = ''
+  def owner = '' 
   def owner_name = ''
-  if ( url_components.size() == 3 ) 
+
+  if ( url_components.size() == 4 ) {
+    subtype = url_components[1]
+    owner_name = url_components[3]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_')
+    owner = url_components[2].replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_')
+  }
+  else if ( url_components.size() == 3 ) {
     owner_name = url_components[2]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_')
+    owner = url_components[1].replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_')
+  }
   else
     owner_name = owner
 
@@ -146,7 +157,7 @@ part_b_other_processes.each { part_b_other_process ->
   }
 
   // System.err.println("url components: ${url_components}");
-  outputLine(reference,name,address,postcode,'https://www.sheffield.gov.uk'+part_b_other_process.@href,'B',type);
+  outputLine(reference,name,address,postcode,'https://www.sheffield.gov.uk'+part_b_other_process.@href,'B',type, subtype);
 }
 
 
@@ -168,16 +179,34 @@ def processPartBSublist(url) {
 
     def part_b_url = part_b_sublist_entry.@href
     def name = part_b_sublist_entry.text()
-    def address = part_b_sublist_entry.parent()?.p[0]?.text()
+    def address = part_b_sublist_entry.parent()?.P[0]?.text()
+    def type = ''
+    def owner_name = ''
+    def owner_ref = ''
+    def subtype = ''
 
     def url_components = part_b_url.substring(112).split('/');
-    def type = url_components[0]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
-    def owner_name = url_components[1]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
-    def owner_ref = url_components[2]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+    if ( url_components.size() == 4 ) {
+      type = url_components[0]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+      subtype = url_components[1]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+      owner_name = url_components[2]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+      owner_ref = url_components[3]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+    }
+    else if ( url_components.size() == 3 ) {
+      type = url_components[0]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+      owner_name = url_components[1]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+      owner_ref = url_components[2]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+    }
+    else {
+      type = url_components[0]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+      owner_name = url_components[1]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+      owner_ref = url_components[2]?.replaceAll('%20','_').replaceAll('%28','_').replaceAll('%29','_').trim()
+    }
 
-    System.err.println('components: '+url_components);
 
     def reference = owner_name+'.'+owner_ref;
+
+    System.err.println('components: '+url_components+" ref: "+reference);
 
     def postcode_matches = address =~ /(GIR 0AA)|((([A-Z-[QVX]][0-9][0-9]?)|(([A-Z-[QVX]][A-Z-[IJZ]][0-9][0-9]?)|(([A-Z-[QVX]][0-9][A-HJKSTUW])|([A-Z-[QVX]][A-Z-[IJZ]][0-9][ABEHMNPRVWXY])))) [0-9][A-Z-[CIKMOV]]{2})/
     def postcode = ""
@@ -188,7 +217,7 @@ def processPartBSublist(url) {
     }
 
     // System.err.println("name:${name?.trim()}\n, url:${part_b_url?.trim()}\n, address:${address?.trim()}\n");
-    outputLine(reference,name,address,postcode,part_b_url,'B',type);
+    outputLine(reference,name,address,postcode,part_b_url,'B',type,subtype);
   }
   // System.err.println("Done");
 }
@@ -201,12 +230,15 @@ def outputLine(permitReference='',
                postcode='',
                permitUrl='',
                section='',
-               type='') {
+               type='',
+               subtype='') {
   System.out.print('"'+permitReference?.trim()+'"');
   System.out.print(',"'+permitName?.trim()+'"');
   System.out.print(',"'+address?.trim()+'"');
+  System.out.print(',"'+postcode?.trim()+'"');
   System.out.print(',"'+permitUrl?.trim()+'"');
   System.out.print(',"'+section?.trim()+'"');
   System.out.print(',"'+type?.trim()+'"');
+  System.out.print(',"'+subtype?.trim()+'"');
   System.out.println();
 }
