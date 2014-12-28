@@ -132,14 +132,26 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
     Node end_time_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#endTime');
     Node sensor_pred = Node.createURI('uri://opensheffield.org/properties#sensor');
 
-    def sdf = new SimpleDateFormat('yyMMddhhmm')
-    def reading_uri_format = new SimpleDateFormat('yyyyMMddhhmm')
+    def sdf = new SimpleDateFormat('yyMMddHHmm')
+    def reading_uri_format = new SimpleDateFormat('yyyyMMDDHHmm')
     def reading_date_format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 
-    // Take off a day - to get any 
-    def from  = sdf.format(new Date(Long.parseLong(highest_timestamp.toString())))
-    // Add an hour on - we will get all the readings so far today that way
     def to  = sdf.format(new Date(System.currentTimeMillis()+(1000*60*60*24)));
+
+    // Take off a day - to get any 
+    def int_start_date = new Date(Long.parseLong(highest_timestamp.toString()))
+
+    def two_months_ago = new Date( System.currentTimeMillis() - ( 1000*60*60*24*60 ) )
+
+    if ( int_start_date < two_months_ago ) {
+      println("Rounding start date.. this should be commented out if doing a full re-population");
+      int_start_date = two_months_ago
+    }
+
+    // If this is more than 2 months in the past, round it.
+    def from  = sdf.format(int_start_date);
+    
+    // Add an hour on - we will get all the readings so far today that way
     def data_url_str = "http://sheffieldairquality.gen2training.co.uk/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=${sensor_id}&from=${from}&to=${to}"
     // Formatted as yymmdd
     println("data url: ${data_url_str}");
@@ -161,7 +173,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
               cells = line.split(",");
               // println("DATA: ${cells}");
               def date = sdf.parse(cells[0].trim()+cells[1].trim());
-              println("${cells[0].trim()+cells[1].trim()} == ${date}");
+              println("${sensor_id} ${cells[0].trim()+cells[1].trim()} == ${date}");
               // def hour = cells[1].substring(0,2);
               // def min = cells[1].substring(2,4);
               def parsed_date = reading_uri_format.format(date)
@@ -175,7 +187,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
                   graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
                   graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
                   graph.add(new Triple(measurement_uri, sensor_pred, sensor_node));
-                  graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format(date)}")));
+                  graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
                   num_readings++;
 
                   // Reading was made by sensor ${sensorUri}

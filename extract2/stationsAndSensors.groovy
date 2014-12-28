@@ -124,7 +124,7 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
     'PM2.5':[
              shortcode:'PM25',
              description:'Particulate matter that is 2.5 micrometers in diameter',
-             uri:'http://dbpedia.org/resource/Particulates'],
+             uri:'http://dbpedia.org/resource/PM_2.5'],
     'O3':[
              shortcode:'O3',
              description:'Ozone',
@@ -145,11 +145,11 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
              // Ian:: Is this correct - PM25 is actually PM2.5?? thats what I've assumed
              shortcode:'PM25',
              description:'Particulate matter that is 2.5 micrometers or less in diameter',
-             uri:'http://dbpedia.org/resource/Particulates'],
+             uri:'http://dbpedia.org/resource/PM_2.5'],
     'PM10':[
              shortcode:'PM10',
              description:'Particulate matter that is 10 micrometers or less in diameter',
-             uri:'http://dbpedia.org/resource/Particulates'],
+             uri:'http://dbpedia.org/resource/PM_10'],
     'CO':[
              shortcode:'CO',
              description:'Carbon Monoxide',
