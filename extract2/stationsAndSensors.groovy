@@ -124,7 +124,7 @@ def processSensor(sensorUriString, sensorLocalId, sensorDataBaseUrl) {
     'PM2.5':[
              shortcode:'PM25',
              description:'Particulate matter that is 2.5 micrometers in diameter',
-             uri:'http://dbpedia.org/resource/Particulates'],
+             uri:'http://dbpedia.org/resource/PM_2.5'],
     'O3':[
              shortcode:'O3',
              description:'Ozone',
