@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Leaflet Heatmap Plugin Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="index, follow" />
+  <meta name="description" content="This example shows a leaflet heatmap layer example for the heatmap.js leaflet plugin" />
+  <meta name="keywords" content="leaflet heatmap, heatmap.js plugin leaflet" />
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+  <script src="heatmap.min.js"></script>
+  <script src="leaflet-heatmap.js"></script>
+
+  <style>
+.demo-wrapper { height:400px; background:rgba(0,0,0,.03); border:3px solid black; }
+.heatmap { width:100%; height:100%; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1>Leaflet Heatmap Example</h1>
+  </div>
+
+   <h1>Map</h1>
+    <div class="demo-wrapper">
+      <div class="heatmap" id="map-canvas">
+      </div>
+    </div>
+  <h3>Done</h3>
+
+  <script>
+    window.onload = function() {
+      var testData = {
+          max: 8,
+          data: [{lat: 53.383611, lng:-1.466944, count: 5},{lat: 53.37, lng:-1.45, count: 3}]
+        };
+
+        var baseLayer = L.tileLayer(
+          'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
+            maxZoom: 18
+          }
+        );
+
+        var cfg = {
+          // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+          "radius": 0.01,
+          "maxOpacity": .8, 
+          // scales the radius based on map zoom
+          "scaleRadius": true, 
+          // if set to false the heatmap uses the global maximum for colorization
+          // if activated: uses the data maximum within the current map boundaries 
+          //   (there will always be a red spot with useLocalExtremas true)
+          "useLocalExtrema": true,
+          // which field name in your data represents the latitude - default "lat"
+          latField: 'lat',
+          // which field name in your data represents the longitude - default "lng"
+          lngField: 'lng',
+          // which field name in your data represents the data value - default "value"
+          valueField: 'count'
+        };
+
+
+        var heatmapLayer = new HeatmapOverlay(cfg);
+
+        var map = new L.Map('map-canvas', {
+          center: new L.LatLng(53.383611, -1.466944),
+          zoom: 14,
+          layers: [baseLayer, heatmapLayer]
+        });
+
+        heatmapLayer.setData(testData);
+    };
+</script>
+</body>
+</html>
