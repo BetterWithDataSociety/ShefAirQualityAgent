@@ -21,15 +21,23 @@
 </head>
 <body>
   <div class="wrapper">
-    <h1>Sheffield NO2 - Current Levels</h1>
+    <h1>Sheffield Sensors - Current Levels For NO2</h1>
   </div>
 
-   <h1>Map</h1>
+    <select name="pollutant">
+      <option value="http://dbpedia.org/resource/NO2">NO2</option>
+      <option value="http://dbpedia.org/resource/Sulfur_dioxide">Sulfur Dioxide</option>
+      <option value="http://dbpedia.org/resource/Ozone">Ozone</option>
+      <option value="http://dbpedia.org/resource/Carbon_monoxide">Carbon Monoxide</option>
+      <option value="http://dbpedia.org/resource/PM_2.5">PM2.5</option>
+      <option value="http://dbpedia.org/resource/PM_10">PM10</option>
+      <option value="http://dbpedia.org/resource/Atmospheric_pressure">Atmospheric Pressure</option>
+      <option value="http://dbpedia.org/resource/Outside_air_temperature">Outside Air Temperature</option>
+    </select>
     <div class="demo-wrapper">
       <div class="heatmap" id="map-canvas">
       </div>
     </div>
-  <h3>Done</h3>
 
   <script>
     window.onload = function() {
