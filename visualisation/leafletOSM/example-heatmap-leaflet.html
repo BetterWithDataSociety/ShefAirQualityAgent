@@ -99,8 +99,9 @@
 
       var w = $( "#polsel" ).val();
 
-      testData.data = []
+      testData.data = [{lat:0,lng:0,count:0}];
       heatmapLayer.setData(testData);
+      testData.data = []
 
       // Remove all existing markers
       for ( var i = 0; i < markers.length; i++ ) {
