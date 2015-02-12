@@ -49,6 +49,7 @@
 
       var heatmapLayer = null;
       var map = null;
+      var markers = [];
 
       // var testData = {
       //     max: 8,
@@ -99,6 +100,13 @@
       var w = $( "#polsel" ).val();
 
       testData.data = []
+      heatmapLayer.setData(testData);
+
+      // Remove all existing markers
+      for ( var i = 0; i < markers.length; i++ ) {
+        map.removeLayer(markers[i]);
+      }
+      markers = [];
 
       // Here is the sparql query to get all latest NO2 readings
       $.ajax({
@@ -111,9 +119,9 @@
 
           // L.marker( [data.results.bindings[i].lat.value,data.results.bindings[i].long.value],{icon: L.divIcon({
           //   className: 'count-icon', html: data.results.bindings[i].observationValue.value, iconSize: [40, 40] })}).addTo(map);
-          L.marker( [data.results.bindings[i].lat.value,data.results.bindings[i].long.value])
+          markers.push (L.marker( [data.results.bindings[i].lat.value,data.results.bindings[i].long.value])
              .bindPopup( data.results.bindings[i].observationValue.value )
-             .addTo(map);
+             .addTo(map));
         }
 
         console.log("%o",testData.data);
