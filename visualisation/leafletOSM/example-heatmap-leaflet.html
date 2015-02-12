@@ -24,7 +24,7 @@
     <h1>Sheffield Sensors - Current Levels For NO2</h1>
   </div>
 
-    <select name="pollutant">
+    <select id="polsel" name="pollutant" onChange="updateHeatmapLayer()">
       <option value="http://dbpedia.org/resource/NO2">NO2</option>
       <option value="http://dbpedia.org/resource/Sulfur_dioxide">Sulfur Dioxide</option>
       <option value="http://dbpedia.org/resource/Ozone">Ozone</option>
@@ -40,12 +40,15 @@
     </div>
 
   <script>
-    window.onload = function() {
+
 
       var testData = {
           max: 40,
           data: []
         };
+
+      var heatmapLayer = null;
+      var map = null;
 
       // var testData = {
       //     max: 8,
@@ -53,6 +56,7 @@
       //   };
 
 
+    window.onload = function() {
         var baseLayer = L.tileLayer(
           'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
             attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
@@ -79,17 +83,26 @@
         };
 
 
-        var heatmapLayer = new HeatmapOverlay(cfg);
+        heatmapLayer = new HeatmapOverlay(cfg);
 
-        var map = new L.Map('map-canvas', {
+        map = new L.Map('map-canvas', {
           center: new L.LatLng(53.383611, -1.466944),
           zoom: 12,
           layers: [baseLayer, heatmapLayer]
         });
 
+        updateHeatmapLayer();
+    };
+
+    function updateHeatmapLayer() {
+
+      var w = $( "#polsel" ).val();
+
+      testData.data = []
+
       // Here is the sparql query to get all latest NO2 readings
       $.ajax({
-        url: "http://apps.opensheffield.org/sparql?default-graph-uri=&query=select+%3Fsensor%2C+%3Flat%2C+%3Flong%2C+%3Ftimestamp%2C+%3FobservationValue%0D%0Awhere+%7B%0D%0A++++%3Fobservation+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23hasValue%3E+%3FobservationValue+.%0D%0A++++%3Fobservation+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23endTime%3E+%3Ftimestamp+.%0D%0A++++%3Fobservation+%3Curi%3A%2F%2Fopensheffield.org%2Fproperties%23sensor%3E+%3Fsensor+.%0D%0A++++%3Fsensor+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23MeasurementProperty%3E+%3Chttp%3A%2F%2Fdbpedia.org%2Fresource%2FNO2%3E+.%0D%0A++++%3Fsensor+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23long%3E+%3Flong+.%0D%0A++++%3Fsensor+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23lat%3E+%3Flat+.%0D%0A%0D%0A++++%7B%0D%0A++++++++select+%28max%28%3Fr%29+AS+%3Fobservation%29%0D%0A++++++++where+%7B%0D%0A++++++++++++%3Fr+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23ObservationValue%3E+.%0D%0A++++++++++++%3Fr+%3Curi%3A%2F%2Fopensheffield.org%2Fproperties%23sensor%3E+%3Fsensor+.%0D%0A++++++++++++%3Fr+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23endTime%3E+%3Fts+.++%0D%0A++++++++++++FILTER+%28+xsd%3AdateTime%28%3Fts%29+%3E+xsd%3AdateTime%28%272015-01-01+00%3A00%3A00%27%29+%29%0D%0A++++++++%7D%0D%0A++++++++GROUP+BY+%3Fsensor%0D%0A++++%7D%0D%0A%0D%0A++++%0D%0A%7D&format=json&timeout=0&debug=on",
+        url: "http://apps.opensheffield.org/sparql?default-graph-uri=&query=select+%3Fsensor%2C+%3Flat%2C+%3Flong%2C+%3Ftimestamp%2C+%3FobservationValue%0D%0Awhere+%7B%0D%0A++++%3Fobservation+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23hasValue%3E+%3FobservationValue+.%0D%0A++++%3Fobservation+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23endTime%3E+%3Ftimestamp+.%0D%0A++++%3Fobservation+%3Curi%3A%2F%2Fopensheffield.org%2Fproperties%23sensor%3E+%3Fsensor+.%0D%0A++++%3Fsensor+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23MeasurementProperty%3E+"+encodeURIComponent('<'+w+'>')+".%0D%0A++++%3Fsensor+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23long%3E+%3Flong+.%0D%0A++++%3Fsensor+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23lat%3E+%3Flat+.%0D%0A%0D%0A++++%7B%0D%0A++++++++select+%28max%28%3Fr%29+AS+%3Fobservation%29%0D%0A++++++++where+%7B%0D%0A++++++++++++%3Fr+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23ObservationValue%3E+.%0D%0A++++++++++++%3Fr+%3Curi%3A%2F%2Fopensheffield.org%2Fproperties%23sensor%3E+%3Fsensor+.%0D%0A++++++++++++%3Fr+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23endTime%3E+%3Fts+.++%0D%0A++++++++++++FILTER+%28+xsd%3AdateTime%28%3Fts%29+%3E+xsd%3AdateTime%28%272015-01-01+00%3A00%3A00%27%29+%29%0D%0A++++++++%7D%0D%0A++++++++GROUP+BY+%3Fsensor%0D%0A++++%7D%0D%0A%0D%0A++++%0D%0A%7D&format=json&timeout=0&debug=on",
       }).done(function(data) {
         for ( var i = 0; i < data.results.bindings.length; i++ ) {
           testData.data.push({lat:data.results.bindings[i].lat.value,
@@ -106,8 +119,8 @@
         console.log("%o",testData.data);
         heatmapLayer.setData(testData);
       });
+    }
 
-    };
 </script>
 </body>
 </html>
