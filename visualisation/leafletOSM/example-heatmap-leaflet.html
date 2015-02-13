@@ -21,7 +21,7 @@
 </head>
 <body>
   <div class="wrapper">
-    <h1>Sheffield Sensors - Current Levels For NO2</h1>
+    <h1>Sheffield Sensors - Current Levels For <span id="wh"></span></h1>
   </div>
 
     <select id="polsel" name="pollutant" onChange="updateHeatmapLayer()">
@@ -98,6 +98,7 @@
     function updateHeatmapLayer() {
 
       var w = $( "#polsel" ).val();
+      $("#wh").html(w + " at "+ new Date());
 
       testData.data = [{lat:0,lng:0,count:0}];
       heatmapLayer.setData(testData);
