@@ -92,3 +92,6 @@ All properties of all sensing devices..
 select distinct ?s ?p ?o where {?s ?p ?o. ?s a <http://purl.oclc.org/NET/ssnx/ssn#SensingDevice>} LIMIT 100
 
 
+
+Conversions..
+http://uk-air.defra.gov.uk/assets/documents/reports/cat06/0502160851_Conversion_Factors_Between_ppb_and.pdf
