@@ -38,6 +38,9 @@ import java.text.SimpleDateFormat
 import groovy.json.*
 import uk.me.jstott.jcoord.CoordinateSystem.*
 import uk.me.jstott.jcoord.*
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
+
+
 
 // Query:
 // http://localhost:8890/sparql?default-graph-uri=&query=select+distinct+%3Fg+%3Fs+%3Fp+%3Fo+where+%7B+graph+%3Fg+%7B+%3Fs+%3Fp+%3Fo.+%3Fs+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23SensingDevice%3E+%7D+%7D+LIMIT+100&format=text%2Fhtml&timeout=0&debug=on
@@ -76,6 +79,7 @@ def populate() {
     def reading_date_format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
 
     Node class_sensing_device = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#SensingDevice');
+    Node class_diffusion_tube = Node.createURI('uri://opensheffield.org/types#diffusionTube');
     Node class_observation_value = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#ObservationValue');
     Node type_pred = Node.createURI('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
     Node measurement_property_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#MeasurementProperty');
@@ -108,10 +112,11 @@ def populate() {
         println("Measurement [${i-12+2003}] = ${it[i]}");
       }
 
-      if ( 1==0 ) {
-        def sensorUriString = "uri://opensheffield.org/datagrid/sensors/${it[1]}"
+      if ( 1==1 ) {
+        def sensorUriString = "uri://opensheffield.org/datagrid/sensors/diffusionNetwork/${it[1]}"
         Node sensorUri = Node.createURI(sensorUriString);
         graph.add(new Triple(sensorUri, type_pred, class_sensing_device));
+        graph.add(new Triple(sensorUri, type_pred, class_diffusion_tube));
         graph.add(new Triple(sensorUri, measurement_property_pred, Node.createURI('http://dbpedia.org/resource/NO2')));
         graph.add(new Triple(sensorUri, sensor_platform_property, Node.createLiteral('scc_air_quality')));
         graph.add(new Triple(sensorUri, methodology_pred, Node.createURI('uri://opensheffield.org/measurementMethodology#annualMean')));
@@ -120,21 +125,27 @@ def populate() {
         graph.add(new Triple(sensorUri, responsible_party_property, scci_epa_as_a_responsible_party));
 
         for ( int i=12; i<it.size(); i++ ) {
-          Node measurement_uri = Node.createURI(sensorUriString+'/'+"${i-12+2003}");
-          graph.add(new Triple(measurement_uri, type_pred, class_observation_value));
-          graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(it[i], XSDDatatype.XSDdouble)));
-          graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(it[i], XSDDatatype.XSDdouble)));
-          graph.add(new Triple(measurement_uri, sensor_pred, sensorUri));
+          if ( ( it[i] != null ) &&
+               ( it[i].trim() != '-' ) &&
+               ( it[i].trim() != '' ) &&
+               ( it[i].trim() != 'moved' ) ) {
+            Node measurement_uri = Node.createURI(sensorUriString+'/'+"${i-12+2003}");
+            graph.add(new Triple(measurement_uri, type_pred, class_observation_value));
+            // graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(it[i], XSDDatatype.XSDdouble)));
+            graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(it[i], XSDDatatype.XSDdouble)));
+            graph.add(new Triple(measurement_uri, sensor_pred, sensorUri));
 
-          def start_date = reading_uri_format.parse("${i-12+2003}01010000",0)
-          def end_date = reading_uri_format.parse("${i-12+2003}12312359",0)
-          graph.add(new Triple(measurement_uri, start_time_pred, NodeFactory.createLiteral("${reading_date_format.format(start_date)}")));
-          graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(end_date)}")));
+            def start_date = reading_uri_format.parse("${i-12+2003}01010000".toString())
+            def end_date = reading_uri_format.parse("${i-12+2003}12312359".toString())
+            graph.add(new Triple(measurement_uri, start_time_pred, NodeFactory.createLiteral("${reading_date_format.format(start_date)}")));
+            graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(end_date)}")));
+
+            println(sensorUriString+'/'+"${i-12+2003} ${start_date} ${it[1]}")
+          }
         }
 
       }
       else {
-        println("Not processed - unable to identify measurement type for ${sensorLocalId}");
       }
 
     }
