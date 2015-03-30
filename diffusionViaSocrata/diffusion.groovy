@@ -84,6 +84,7 @@ def populate() {
     Node last_check = Node.createURI('uri://opensheffield.org/properties#lastCheck');
     Node methodology_pred = Node.createURI('uri://opensheffield.org/properties#measurementMethodology');
     Node has_value_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#hasValue');
+    Node start_time_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#startTime');
     Node end_time_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#endTime');
     Node sensor_pred = Node.createURI('uri://opensheffield.org/properties#sensor');
     Node sensor_id_property = Node.createURI('uri://opensheffield.org/properties#sensorId');
@@ -117,6 +118,17 @@ def populate() {
 
         graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(it[1])));
         graph.add(new Triple(sensorUri, responsible_party_property, scci_epa_as_a_responsible_party));
+
+        for ( int i=12; i<it.size(); i++ ) {
+          Node measurement_uri = Node.createURI(sensorUriString+'/'+"${i-12+2003}");
+          graph.add(new Triple(measurement_uri, type_pred, class_observation_value));
+          graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(it[i], XSDDatatype.XSDdouble)));
+          graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(it[i], XSDDatatype.XSDdouble)));
+          graph.add(new Triple(measurement_uri, sensor_pred, sensorUri));
+          // graph.add(new Triple(measurement_uri, start_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
+          // graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
+        }
+
       }
       else {
         println("Not processed - unable to identify measurement type for ${sensorLocalId}");
