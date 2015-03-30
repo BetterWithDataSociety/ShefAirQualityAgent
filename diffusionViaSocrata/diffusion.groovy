@@ -95,6 +95,11 @@ def populate() {
     Node sensor_platform_property = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#onPlatform');
     Node responsible_party_property = Node.createURI('uri://opensheffield.org/properties#responsibleParty');
     Node qa_property = Node.createURI('uri://opensheffield.org/properties#QACriteria');
+    Node label_pred = Node.createURI('http://www.w3.org/2000/01/rdf-schema#label');
+
+    Node lat_pred = Node.createURI('http://www.w3.org/2003/01/geo/wgs84_pos#lat');
+    Node lon_pred = Node.createURI('http://www.w3.org/2003/01/geo/wgs84_pos#long');
+
 
     Node scci_epa_as_a_responsible_party = Node.createURI('https://www.sheffield.gov.uk/environment');
 
@@ -120,9 +125,12 @@ def populate() {
         graph.add(new Triple(sensorUri, measurement_property_pred, Node.createURI('http://dbpedia.org/resource/NO2')));
         graph.add(new Triple(sensorUri, sensor_platform_property, Node.createLiteral('scc_air_quality')));
         graph.add(new Triple(sensorUri, methodology_pred, Node.createURI('uri://opensheffield.org/measurementMethodology#annualMean')));
+        graph.add(new Triple(sensorUri, lat_pred, Node.createLiteral(''+latLng.getLat(), XSDDatatype.XSDdouble)));
+        graph.add(new Triple(sensorUri, lon_pred, Node.createLiteral(''+latLng.getLng(), XSDDatatype.XSDdouble)));
 
         graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(it[1])));
         graph.add(new Triple(sensorUri, responsible_party_property, scci_epa_as_a_responsible_party));
+        graph.add(new Triple(sensorUri, label_pred, Node.createLiteral("${it[8]} / ${it[9]}")));
 
         for ( int i=12; i<it.size(); i++ ) {
           if ( ( it[i] != null ) &&
