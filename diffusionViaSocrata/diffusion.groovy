@@ -125,8 +125,11 @@ def populate() {
           graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(it[i], XSDDatatype.XSDdouble)));
           graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(it[i], XSDDatatype.XSDdouble)));
           graph.add(new Triple(measurement_uri, sensor_pred, sensorUri));
-          // graph.add(new Triple(measurement_uri, start_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
-          // graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
+
+          def start_date = reading_uri_format.parse("${i-12+2003}01010000",0)
+          def end_date = reading_uri_format.parse("${i-12+2003}12312359",0)
+          graph.add(new Triple(measurement_uri, start_time_pred, NodeFactory.createLiteral("${reading_date_format.format(start_date)}")));
+          graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(end_date)}")));
         }
 
       }
