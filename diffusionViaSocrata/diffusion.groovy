@@ -82,6 +82,7 @@ def populate() {
     Node dc_title_pred = Node.createURI('http://purl.org/metadata/dublin_core#Title');
     Node max_timestamp = Node.createURI('uri://opensheffield.org/properties#maxTimestamp');
     Node last_check = Node.createURI('uri://opensheffield.org/properties#lastCheck');
+    Node methodology_pred = Node.createURI('uri://opensheffield.org/properties#measurementMethodology');
     Node has_value_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#hasValue');
     Node end_time_pred = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#endTime');
     Node sensor_pred = Node.createURI('uri://opensheffield.org/properties#sensor');
@@ -107,14 +108,15 @@ def populate() {
       }
 
       if ( 1==0 ) {
+        def sensorUriString = "uri://opensheffield.org/datagrid/sensors/${it[1]}"
         Node sensorUri = Node.createURI(sensorUriString);
         graph.add(new Triple(sensorUri, type_pred, class_sensing_device));
         graph.add(new Triple(sensorUri, measurement_property_pred, Node.createURI('http://dbpedia.org/resource/NO2')));
         graph.add(new Triple(sensorUri, sensor_platform_property, Node.createLiteral('scc_air_quality')));
+        graph.add(new Triple(sensorUri, methodology_pred, Node.createURI('uri://opensheffield.org/measurementMethodology#annualMean')));
 
-        graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(sensorLocalId)));
+        graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(it[1])));
         graph.add(new Triple(sensorUri, responsible_party_property, scci_epa_as_a_responsible_party));
-        graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(sensorLocalId)));
       }
       else {
         println("Not processed - unable to identify measurement type for ${sensorLocalId}");
