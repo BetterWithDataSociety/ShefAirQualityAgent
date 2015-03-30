@@ -36,6 +36,8 @@ import com.hp.hpl.jena.rdf.model.* ;
 import com.hp.hpl.jena.graph.*;
 import java.text.SimpleDateFormat
 import groovy.json.*
+import uk.me.jstott.jcoord.CoordinateSystem.*
+import uk.me.jstott.jcoord.*
 
 // Query:
 // http://localhost:8890/sparql?default-graph-uri=&query=select+distinct+%3Fg+%3Fs+%3Fp+%3Fo+where+%7B+graph+%3Fg+%7B+%3Fs+%3Fp+%3Fo.+%3Fs+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23SensingDevice%3E+%7D+%7D+LIMIT+100&format=text%2Fhtml&timeout=0&debug=on
@@ -95,9 +97,10 @@ def populate() {
     def diffusion_data_table_data = new JsonSlurper().parseText(apiUrl.text)
 
     diffusion_data_table_data.data.each {
-      println(it);
-      // LatLng latLng = new OSRef(394251,806376).toLatLng();
-      // latLng.toWGS84();
+      // println(it);
+      LatLng latLng = new OSRef(Long.parseLong(it[10]),Long.parseLong(it[11])).toLatLng();
+      latLng.toWGS84();
+      println("guid: ${it[1]}, n:${it[10]}, e:${it[11]}, lat:${latLng.getLat()} lon:${latLng.getLng()} ");
     }
   }
   catch ( Exception e ) {
