@@ -105,6 +105,21 @@ def populate() {
       for ( int i=12; i<it.size(); i++ ) {
         println("Measurement [${i-12+2003}] = ${it[i]}");
       }
+
+      if ( 1==0 ) {
+        Node sensorUri = Node.createURI(sensorUriString);
+        graph.add(new Triple(sensorUri, type_pred, class_sensing_device));
+        graph.add(new Triple(sensorUri, measurement_property_pred, Node.createURI('http://dbpedia.org/resource/NO2')));
+        graph.add(new Triple(sensorUri, sensor_platform_property, Node.createLiteral('scc_air_quality')));
+
+        graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(sensorLocalId)));
+        graph.add(new Triple(sensorUri, responsible_party_property, scci_epa_as_a_responsible_party));
+        graph.add(new Triple(sensorUri, sensor_id_property, Node.createLiteral(sensorLocalId)));
+      }
+      else {
+        println("Not processed - unable to identify measurement type for ${sensorLocalId}");
+      }
+
     }
   }
   catch ( Exception e ) {
