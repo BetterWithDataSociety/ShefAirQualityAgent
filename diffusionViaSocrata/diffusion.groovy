@@ -100,7 +100,11 @@ def populate() {
       // println(it);
       LatLng latLng = new OSRef(Long.parseLong(it[10]),Long.parseLong(it[11])).toLatLng();
       latLng.toWGS84();
+      // Host : it[8], site:it[9], 2003:it[12],...2013:it[22]
       println("guid: ${it[1]}, n:${it[10]}, e:${it[11]}, lat:${latLng.getLat()} lon:${latLng.getLng()} ");
+      for ( int i=12; i<it.size(); i++ ) {
+        println("Measurement [${i-12+2003}] = ${it[i]}");
+      }
     }
   }
   catch ( Exception e ) {
