@@ -14,7 +14,8 @@
     @Grab(group='org.apache.jena', module='jena-security', version='2.11.2'),
     @Grab(group='org.apache.jena', module='jena-text', version='1.0.1'),
     @Grab(group='virtuoso', module='virtjena', version='2'),
-    @Grab(group='virtuoso', module='virtjdbc', version='4.1')
+    @Grab(group='virtuoso', module='virtjdbc', version='4.1'),
+    @Grab(group='jcoord', module='jcoord', version='1.0')
 ])
 
 // http://www.sheffieldairmap.org/view_map.html
@@ -51,6 +52,8 @@ println("Starting");
 
 
 def store_uri = "jdbc:virtuoso://localhost:1111"
+
+println("Run as groovy -Dgroovy.grape.autoDownload=false  ./diffusion.groovy\nTo avoid startup lag");
 
 println("Populate..");
 populate();
@@ -93,6 +96,8 @@ def populate() {
 
     diffusion_data_table_data.data.each {
       println(it);
+      // LatLng latLng = new OSRef(394251,806376).toLatLng();
+      // latLng.toWGS84();
     }
   }
   catch ( Exception e ) {

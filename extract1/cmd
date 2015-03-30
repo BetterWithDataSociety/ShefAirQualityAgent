@@ -1,3 +1,3 @@
-copy the grapeconfig/virtuoso dir to ~/.groovy/grapes/virtuoso
+copy grapeconfig/* to ~/.groovy/grapes/virtuoso
 
 groovy test1.groovy
