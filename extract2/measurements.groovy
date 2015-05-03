@@ -51,7 +51,7 @@ import static groovyx.net.http.ContentType.URLENC
 // def the_base_url = "http://sheffieldairquality.gen2training.co.uk/sheffield/content.html"
 def the_base_url = "http://sheffieldairquality.gen2training.co.uk"
 
-println("Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy\nTo avoid startup lag");
+println("Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy SocrataToken SocrataUn Socrata Pw \nTo avoid startup lag");
 
 
 println("Starting..");
@@ -60,6 +60,9 @@ println("Done..");
 System.exit(0);
 
 def doStep1(token,un,pw) {
+
+  println("Finding max timestamp...");
+
   // Query the store for all sensors on platform "scc_air_quality"
   try {
     def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");
@@ -104,9 +107,18 @@ def doStep1(token,un,pw) {
             println("Set last timestamp to ${resut_of_get_readings.largestTimestamp}");
             graph.add(new Triple(n, max_timestamp, NodeFactory.createLiteral("${resut_of_get_readings.largestTimestamp}".toString())));
           }
+          else {
+            println("No timestamp");
+          }
+        }
+        else {
+          println("No readings");
         }
       }
+    } catch ( Exception e ) {
+      e.printStackTrace();
     } finally {
+      println("Query completed");
       qExec.close();
     }
     graph.close();
@@ -115,6 +127,7 @@ def doStep1(token,un,pw) {
     e.printStackTrace();
   }
   finally {
+    println("Done");
   }
 }
 
@@ -245,6 +258,9 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
 
 def pushToSocrata(data_rows, token, un, pw) {
+
+  println("Pushing to socrata");
+
   def colheads = "ssn_measurement_id,ssn_sensor_id,ssn_measurement_time,ssn_measurement_value"
   // data_rows.add([measurement_uri, sensor_pred, end_time_pred, cells[i].trim()])
   // https://data.sheffield.gov.uk/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb/
