@@ -153,6 +153,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
     def sdf = new SimpleDateFormat('yyMMddHHmm')
     def reading_uri_format = new SimpleDateFormat('yyyyMMDDHHmm')
     def reading_date_format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+    def socrata_date_format = new SimpleDateFormat("MM-dd-yyyy hh:mm a");
 
     def to  = sdf.format(new Date(System.currentTimeMillis()+(1000*60*60*24)));
 
@@ -220,7 +221,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
                     biggest_date = date.getTime()
                   }
 
-                  data_rows.add([measurement_uri, sensor_pred, end_time_pred, cells[i].trim()])
+                  data_rows.add([measurement_uri, sensor_pred, socrata_date_format.format(date), cells[i].trim()])
                 }
 
                 i++
@@ -276,14 +277,13 @@ def pushToSocrata(data_rows, token, un, pw) {
   
     def sw = new StringWriter()
     sw.write(colheads)
-    sw.write('\n')
     data_rows.each{ row ->
-      sw.write('"'+row[0]+'"');
+      sw.write('\r\n"'+row[0]+'"');
       sw.write(',"'+row[1]+'"');
       sw.write(',"'+row[2]+'"');
-      sw.write(',"'+row[3]+'"');
-      sw.write('\n')
+      sw.write(','+row[3]+'');
     }
+    sw.write('\r\n');
   
     def content = sw.toString()
     println("\n\nUpload string:");
@@ -291,13 +291,13 @@ def pushToSocrata(data_rows, token, un, pw) {
     println("\n\n");
   
    // Add preemtive auth
-   http.client.addRequestInterceptor( new HttpRequestInterceptor() {
-    void process(HttpRequest httpRequest, HttpContext httpContext) {
-      String auth = "${un}:${pw}"
-      String enc_auth = auth.bytes.encodeBase64().toString()
-        httpRequest.addHeader('Authorization', 'Basic ' + enc_auth);
-      }
-    })
+   // http.client.addRequestInterceptor( new HttpRequestInterceptor() {
+   //  void process(HttpRequest httpRequest, HttpContext httpContext) {
+   //    String auth = "${un}:${pw}"
+   //    String enc_auth = auth.bytes.encodeBase64().toString()
+   //      httpRequest.addHeader('Authorization', 'Basic ' + enc_auth);
+   //    }
+   //  })
 
   
     def auth_str = "${un}:${pw}".bytes.encodeBase64().toString()
@@ -305,9 +305,10 @@ def pushToSocrata(data_rows, token, un, pw) {
     println("Auth header: ${auth_str}");
   
     http.request( POST ) { req ->
-      uri.path = '/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb.json'
+      // uri.path = '/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb.json'
+      uri.path = '/resource/mnz9-msrb.json'
       requestContentType = 'text/csv'
-      // headers.'Authorization' = "Basic ${auth_str}"
+      headers.'Authorization' = "Basic ${auth_str}"
       headers.'X-App-Token' = token
       send ContentType.TEXT,  content
   
