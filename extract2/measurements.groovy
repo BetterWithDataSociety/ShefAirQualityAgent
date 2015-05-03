@@ -4,7 +4,8 @@
     @Grab(group='org.slf4j', module='slf4j-api', version='1.7.6'),
     @Grab(group='org.slf4j', module='jcl-over-slf4j', version='1.7.6'),
     @Grab(group='net.sourceforge.nekohtml', module='nekohtml', version='1.9.14'),
-    @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.5.1'),
+    // @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.5.1'),
+    @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.7.1'),
     @Grab(group='xerces', module='xercesImpl', version='2.9.1'),
     @Grab(group='org.apache.jena', module='jena-tdb', version='1.0.2'),
     @Grab(group='org.apache.jena', module='jena-core', version='2.11.2'),
@@ -39,7 +40,16 @@ import groovyx.net.http.HTTPBuilder
 import static groovyx.net.http.ContentType.URLENC
 import org.apache.http.*
 import org.apache.http.protocol.*
+import org.codehaus.groovy.runtime.MethodClosure
 
+
+
+
+// Register a parser for text/csv
+// http.parser.'text/csv' = { resp ->
+//   return new CSVReader( new InputStreamReader( resp.entity.content,
+//                                 ParserRegistry.getCharset( resp ) ) )
+// }
 
 // Query:
 // http://localhost:8890/sparql?default-graph-uri=&query=select+distinct+%3Fg+%3Fs+%3Fp+%3Fo+where+%7B+graph+%3Fg+%7B+%3Fs+%3Fp+%3Fo.+%3Fs+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23SensingDevice%3E+%7D+%7D+LIMIT+100&format=text%2Fhtml&timeout=0&debug=on
@@ -221,7 +231,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
                     biggest_date = date.getTime()
                   }
 
-                  data_rows.add([measurement_uri, sensor_pred, socrata_date_format.format(date), cells[i].trim()])
+                  data_rows.add([measurement_uri, sensor_id, socrata_date_format.format(date), cells[i].trim()])
                 }
 
                 i++
@@ -273,7 +283,15 @@ def pushToSocrata(data_rows, token, un, pw) {
     def colheads = "ssn_measurement_id,ssn_sensor_id,ssn_measurement_time,ssn_measurement_value"
     // data_rows.add([measurement_uri, sensor_pred, end_time_pred, cells[i].trim()])
     // https://data.sheffield.gov.uk/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb/
+    // def http = new HTTPBuilder( 'https://data.sheffield.gov.uk' )
     def http = new HTTPBuilder( 'https://data.sheffield.gov.uk' )
+
+    // Always handle text/csv as text/plain
+    // http.parser.'text/csv' = http.parser.'text/plain'
+    // http.encoder.putAt('text/csv', new MethodClosure(EncoderRegistry, 'encodeText'))
+    http.encoder.putAt('text/csv', new MethodClosure(http.encoder, 'encodeText'))
+
+
   
     def sw = new StringWriter()
     sw.write(colheads)
@@ -307,18 +325,20 @@ def pushToSocrata(data_rows, token, un, pw) {
     http.request( POST ) { req ->
       // uri.path = '/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb.json'
       uri.path = '/resource/mnz9-msrb.json'
-      requestContentType = 'text/csv'
       headers.'Authorization' = "Basic ${auth_str}"
       headers.'X-App-Token' = token
-      send ContentType.TEXT,  content
+      requestContentType = 'text/csv'
+      // send 'text/csv',  content
+      body = content
   
-      response.success = { resp ->
+      response.success = { resp, json ->
           println "POST response status: ${resp.statusLine}"
+          println json
           // assert resp.statusLine.statusCode == 201
       }
   
       response.failure = { resp ->
-          println("\n\n ****Failure: ${resp.statusLine} ${resp.status} ${resp}\n\n");
+          println("\n\n****Failure: ${resp.statusLine} ${resp.status} ${resp}\n\n");
       }
     }
   }
