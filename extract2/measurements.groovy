@@ -35,6 +35,8 @@ import com.hp.hpl.jena.rdf.model.* ;
 import com.hp.hpl.jena.graph.*;
 import java.text.SimpleDateFormat
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
+import groovyx.net.http.HTTPBuilder
+import static groovyx.net.http.ContentType.URLENC
 
 // Query:
 // http://localhost:8890/sparql?default-graph-uri=&query=select+distinct+%3Fg+%3Fs+%3Fp+%3Fo+where+%7B+graph+%3Fg+%7B+%3Fs+%3Fp+%3Fo.+%3Fs+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23SensingDevice%3E+%7D+%7D+LIMIT+100&format=text%2Fhtml&timeout=0&debug=on
@@ -53,11 +55,11 @@ println("Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy\
 
 
 println("Starting..");
-doStep1()
+doStep1(args[0], args[1], args[2])
 println("Done..");
 System.exit(0);
 
-def doStep1() {
+def doStep1(token,un,pw) {
   // Query the store for all sensors on platform "scc_air_quality"
   try {
     def graph = new VirtGraph('uri://opensheffield.org/datagrid/sensors', "jdbc:virtuoso://localhost:1111", "dba", "dba");
@@ -90,7 +92,7 @@ def doStep1() {
         Node n = Node.createURI(sensor.getURI())
 
         // def resut_of_get_readings = getReadings(graph, n, lastCheck.toString(), max_ts_value.toString(), sensorId.toString());
-        def resut_of_get_readings = getReadings(graph, n, lastCheck.toString(), max_ts_value, sensorId.toString());
+        def resut_of_get_readings = getReadings(graph, n, lastCheck.toString(), max_ts_value, sensorId.toString(), token, un, pw);
 
         if ( resut_of_get_readings  ) {
           if ( resut_of_get_readings.largestTimestamp ) {
@@ -116,7 +118,7 @@ def doStep1() {
   }
 }
 
-def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
+def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, token, un, pw) {
   println("getReadings for ${sensor_id} since ${last_check} higest timestamp so far is ${highest_timestamp}");
   def num_readings = 0;
   def biggest_date = 0;
@@ -159,6 +161,8 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
     def data_url = new URL(data_url_str);
     def line = null
     def row = 0;
+  
+    def data_rows = []
 
     def process = false
     data_url.withReader { br ->
@@ -199,6 +203,8 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
                   if ( date.getTime() > biggest_date ) { 
                     biggest_date = date.getTime()
                   }
+
+                  data_rows.add([measurement_uri, sensor_pred, end_time_pred, cells[i].trim()])
                 }
 
                 i++
@@ -218,9 +224,13 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
 
         if ( ( row % 10000 ) == 0 ) {
           println("${row} rows, ${num_readings} observationsn for ${sensor_id} so far. Max timestamp: ${reading_uri_format.format(new Date(biggest_date))}");
+          pushToSocrata(data_rows, token, un, pw);
+          data_rows = []
         }
       }
     }
+
+    pushToSocrata(data_rows, token, un, pw);
     println("Max timestamp for ${sensor_id} : ${reading_uri_format.format(new Date(biggest_date))} added ${num_readings} observations");
   }
   catch ( Exception e ) {
@@ -231,4 +241,34 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id) {
     numObservationsAdded:num_readings,
     largestTimestamp:biggest_date
   ]
+}
+
+
+def pushToSocrata(data_rows, token, un, pw) {
+  def colheads = "ssn_measurement_id,ssn_sensor_id,ssn_measurement_time,ssn_measurement_value"
+  // data_rows.add([measurement_uri, sensor_pred, end_time_pred, cells[i].trim()])
+  // https://data.sheffield.gov.uk/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb/
+  def http = new HTTPBuilder( 'https://data.sheffield.gov.uk' )
+
+  def sw = new StringWriter()
+  sw.write(colheads)
+  sw.write('\n')
+  data_rows.each{ row ->
+    sw.write('"'+row[0]+'"');
+    sw.write(',"'+row[1]+'"');
+    sw.write(',"'+row[2]+'"');
+    sw.write(',"'+row[3]+'"');
+    sw.write('\n')
+  }
+
+  http.request( POST ) { req ->
+    uri.path = '/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb.json'
+    send 'text/csv', sw.toString()
+    headers.'X-App-Token' = token
+
+    response.success = { resp ->
+        println "POST response status: ${resp.statusLine}"
+        // assert resp.statusLine.statusCode == 201
+    }
+  }
 }
