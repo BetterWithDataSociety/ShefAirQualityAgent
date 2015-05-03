@@ -37,6 +37,9 @@ import java.text.SimpleDateFormat
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
 import groovyx.net.http.HTTPBuilder
 import static groovyx.net.http.ContentType.URLENC
+import org.apache.http.*
+import org.apache.http.protocol.*
+
 
 // Query:
 // http://localhost:8890/sparql?default-graph-uri=&query=select+distinct+%3Fg+%3Fs+%3Fp+%3Fo+where+%7B+graph+%3Fg+%7B+%3Fs+%3Fp+%3Fo.+%3Fs+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23SensingDevice%3E+%7D+%7D+LIMIT+100&format=text%2Fhtml&timeout=0&debug=on
@@ -190,7 +193,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
               cells = line.split(",");
               // println("DATA: ${cells}");
               def date = sdf.parse(cells[0].trim()+cells[1].trim());
-              println("${sensor_id} ${cells[0].trim()+cells[1].trim()} == ${date}");
+              // println("${sensor_id} ${cells[0].trim()+cells[1].trim()} == ${date}");
               // def hour = cells[1].substring(0,2);
               // def min = cells[1].substring(2,4);
               def parsed_date = reading_uri_format.format(date)
@@ -259,32 +262,68 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
 def pushToSocrata(data_rows, token, un, pw) {
 
-  println("Pushing to socrata");
+  println("Pushing to socrata [${token},${un},${pw}]");
 
-  def colheads = "ssn_measurement_id,ssn_sensor_id,ssn_measurement_time,ssn_measurement_value"
-  // data_rows.add([measurement_uri, sensor_pred, end_time_pred, cells[i].trim()])
-  // https://data.sheffield.gov.uk/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb/
-  def http = new HTTPBuilder( 'https://data.sheffield.gov.uk' )
+  if ( data_rows == null || data_rows.size() == 0 )
+    return;
 
-  def sw = new StringWriter()
-  sw.write(colheads)
-  sw.write('\n')
-  data_rows.each{ row ->
-    sw.write('"'+row[0]+'"');
-    sw.write(',"'+row[1]+'"');
-    sw.write(',"'+row[2]+'"');
-    sw.write(',"'+row[3]+'"');
+  try {
+  
+    def colheads = "ssn_measurement_id,ssn_sensor_id,ssn_measurement_time,ssn_measurement_value"
+    // data_rows.add([measurement_uri, sensor_pred, end_time_pred, cells[i].trim()])
+    // https://data.sheffield.gov.uk/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb/
+    def http = new HTTPBuilder( 'https://data.sheffield.gov.uk' )
+  
+    def sw = new StringWriter()
+    sw.write(colheads)
     sw.write('\n')
-  }
+    data_rows.each{ row ->
+      sw.write('"'+row[0]+'"');
+      sw.write(',"'+row[1]+'"');
+      sw.write(',"'+row[2]+'"');
+      sw.write(',"'+row[3]+'"');
+      sw.write('\n')
+    }
+  
+    def content = sw.toString()
+    println("\n\nUpload string:");
+    println(content);
+    println("\n\n");
+  
+   // Add preemtive auth
+   http.client.addRequestInterceptor( new HttpRequestInterceptor() {
+    void process(HttpRequest httpRequest, HttpContext httpContext) {
+      String auth = "${un}:${pw}"
+      String enc_auth = auth.bytes.encodeBase64().toString()
+        httpRequest.addHeader('Authorization', 'Basic ' + enc_auth);
+      }
+    })
 
-  http.request( POST ) { req ->
-    uri.path = '/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb.json'
-    send 'text/csv', sw.toString()
-    headers.'X-App-Token' = token
+  
+    def auth_str = "${un}:${pw}".bytes.encodeBase64().toString()
 
-    response.success = { resp ->
-        println "POST response status: ${resp.statusLine}"
-        // assert resp.statusLine.statusCode == 201
+    println("Auth header: ${auth_str}");
+  
+    http.request( POST ) { req ->
+      uri.path = '/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb.json'
+      requestContentType = 'text/csv'
+      // headers.'Authorization' = "Basic ${auth_str}"
+      headers.'X-App-Token' = token
+      send ContentType.TEXT,  content
+  
+      response.success = { resp ->
+          println "POST response status: ${resp.statusLine}"
+          // assert resp.statusLine.statusCode == 201
+      }
+  
+      response.failure = { resp ->
+          println("\n\n ****Failure: ${resp.statusLine} ${resp.status} ${resp}\n\n");
+      }
     }
   }
+  catch ( Exception e ) {
+    e.printStackTrace();
+  }
+
+  println("Push to socrata completed");
 }
