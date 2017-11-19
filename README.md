@@ -5,6 +5,47 @@ ShefAirQualityAgent
 
 Software agent to consume the raw sheffield air quality data and present it as open data
 
+# Collecting data
+
+The scripts in this repository incrementally synchronize the data in a virtuoso triple store with
+the raw data from the sheffield city air quality monitoring network. The underlying reason is to 
+convert the raw data from a hard to process brittle format to a flexible and queryable one that can 
+be arbitrarily joined with other data sets.
+
+## Bootstrapping
+
+After setting up your local virtuoso store
+
+from the extract2 directory, run the stationsAndSensors script to collect data about all known stations and sensors
+
+    groovy ./stationsAndSensors.groovy 
+
+This will allow you to execute queries like 
+
+    select ?sensor where {
+        ?sensor a <http://purl.oclc.org/NET/ssnx/ssn#SensingDevice>
+    }
+    ORDER BY DESC(?sensor)
+
+To list all sensors.
+
+once completed, you can run 
+
+
+# Viewing data
+
+On the machine running virtuoso, access the sparql endpoint on port 8890, for example: http://localhost:8890/
+
+There are example queries here::
+
+https://github.com/BetterWithDataSociety/ShefAirQualityAgent/wiki/Sample-SPARQL
+
+
+
+
+
+# Legacy
+
 
 Notes on consuming the data
 
