@@ -233,6 +233,9 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
                   // Even if the reading has no data, it's still the biggest one we have seen.
                   // Not true because future readings have not been taken yet. Sucks!
+                  // This is really unfortunate -- and leads to the "2 month rule" at line 181
+                  // IE we don't re-read every page of data since a sensor stopped in 2001 just because there
+                  // were no values. If dong a full re-harvest, comment out the code around 181
                   if ( date.getTime() > biggest_date ) { 
                     biggest_date = date.getTime()
                   }
