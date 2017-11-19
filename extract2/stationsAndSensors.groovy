@@ -65,6 +65,9 @@ map_element.AREA.findAll { area ->
   processSensorStationFrameset(the_base_url, '/sheffield/'+area.@href, area.@alt);
 }
 
+// Manually add in the "Historical" site for legacy readings
+processSensorStation(base,'Historical','Historical');
+
 println("\n\n All Done");
 
 
