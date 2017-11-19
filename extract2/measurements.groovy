@@ -168,7 +168,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
     Node sensor_pred = Node.createURI('uri://opensheffield.org/properties#sensor');
 
     def sdf = new SimpleDateFormat('yyMMddHHmm')
-    def reading_uri_format = new SimpleDateFormat('yyyyMMDDHHmm')
+    def reading_uri_format = new SimpleDateFormat('yyyyMMddHHmm')
     def reading_date_format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
     def socrata_date_format = new SimpleDateFormat("MM-dd-yyyy hh:mm a");
 
