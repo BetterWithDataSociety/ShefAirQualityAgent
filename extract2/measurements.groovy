@@ -68,7 +68,13 @@ println("Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy 
 
 
 println("Starting..");
-doStep1(args[0], args[1], args[2])
+if ( args.length == 3 ) {
+  doStep1(args[0], args[1], args[2])
+}
+else {
+  doStep1(null,null,null);
+}
+
 println("Done..");
 System.exit(0);
 
@@ -172,10 +178,10 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
     def two_months_ago = new Date( System.currentTimeMillis() - ( 1000*60*60*24*60 ) )
 
-    if ( int_start_date < two_months_ago ) {
-      println("Rounding start date.. this should be commented out if doing a full re-population");
-      int_start_date = two_months_ago
-    }
+    // if ( int_start_date < two_months_ago ) {
+    //   println("Rounding start date.. this should be commented out if doing a full re-population");
+    //   int_start_date = two_months_ago
+    // }
 
     // If this is more than 2 months in the past, round it.
     def from  = sdf.format(int_start_date);
@@ -250,14 +256,18 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
         }
 
         if ( ( row % 10000 ) == 0 ) {
-          println("${row} rows, ${num_readings} observationsn for ${sensor_id} so far. Max timestamp: ${reading_uri_format.format(new Date(biggest_date))}");
-          pushToSocrata(data_rows, token, un, pw);
+          println("${row} rows, ${num_readings} observations for ${sensor_id} so far. Max timestamp: ${reading_uri_format.format(new Date(biggest_date))}");
+          if ( token != null ) {
+            pushToSocrata(data_rows, token, un, pw);
+          }
           data_rows = []
         }
       }
     }
 
-    pushToSocrata(data_rows, token, un, pw);
+    if ( token != null ) {
+      pushToSocrata(data_rows, token, un, pw);
+    }
     println("Max timestamp for ${sensor_id} : ${reading_uri_format.format(new Date(biggest_date))} added ${num_readings} observations");
   }
   catch ( Exception e ) {
