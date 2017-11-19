@@ -66,7 +66,7 @@ map_element.AREA.findAll { area ->
 }
 
 // Manually add in the "Historical" site for legacy readings
-processSensorStation(base,'Historical','Historical');
+processSensorStationFrameset(the_base_url,'/sheffield/Historical/index.html','Historical');
 
 println("\n\n All Done");
 
@@ -103,22 +103,29 @@ def processSensorStation(base, uri, name) {
     //validateSensorStation("", name)
     // def stationUri = "uri://opensheffield.org/datagrid/stations/${it.@value}"
 
-    sensor_cluster_select.OPTION.each {
-      println(it.@value+' '+it.text())
+    if ( sensor_cluster_select ) {
+      println("Found sensor cluster select - looking for option elements");
+      sensor_cluster_select.OPTION?.each {
+        println(it.@value+' '+it.text())
 
-      // For this sensor - work out if we already have a sensor header record in the database
+        // For this sensor - work out if we already have a sensor header record in the database
 
-      // http://sheffieldairquality.gen2training.co.uk/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=Groundhog1/LD-Groundhog1_NO2.ic&from=000101&to=140630
-      def sensorUri = "uri://opensheffield.org/datagrid/sensors/${it.@value}"
-      def from="01/01/1900"
-      def to="01/06/2014"
-      println("DATA URL WILL BE ${base}/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=${it.@value}&from=${from}&to=${to}")
+        // http://sheffieldairquality.gen2training.co.uk/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=Groundhog1/LD-Groundhog1_NO2.ic&from=000101&to=140630
+        def sensorUri = "uri://opensheffield.org/datagrid/sensors/${it.@value}"
+        def from="01/01/1900"
+        def to="01/06/2014"
+        println("DATA URL WILL BE ${base}/cgi-bin/gifgraph_sheffield.cgi/data.txt?format=csv&zmacro=${it.@value}&from=${from}&to=${to}")
 
-      processSensor(sensorUri, it.@value, base);
+        processSensor(sensorUri, it.@value, base);
+      }
+    }
+    else {
+      println("Unable to find select element at ${base+uri}");
+      println(sensor_cluster);
     }
   }
   catch ( Exception e ) {
-    println("ERROR...."+e.message);
+    println("ERROR(${base+uri})...."+e.message);
   }
 }
 

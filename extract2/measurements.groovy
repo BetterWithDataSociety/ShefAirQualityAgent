@@ -154,6 +154,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
   println("getReadings for ${sensor_id} since ${last_check} higest timestamp so far is ${highest_timestamp}");
   def num_readings = 0;
   def biggest_date = 0;
+  def date_as_str = null;
   try {
     Node class_sensing_device = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#SensingDevice');
     Node class_observation_value = Node.createURI('http://purl.oclc.org/NET/ssnx/ssn#ObservationValue');
@@ -209,11 +210,19 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
           try {
               cells = line.split(",");
               // println("DATA: ${cells}");
-              def date = sdf.parse(cells[0].trim()+cells[1].trim());
+              date_as_str = cells[0].trim()+cells[1].trim();
+              def date = sdf.parse(date_as_str);
               // println("${sensor_id} ${cells[0].trim()+cells[1].trim()} == ${date}");
               // def hour = cells[1].substring(0,2);
               // def min = cells[1].substring(2,4);
               def parsed_date = reading_uri_format.format(date)
+
+              if ( parsed_date.length() == 12 ) {
+                // Yay -looks like we got YYYYMMDDhhmm back as our parsed date - nothing to do
+              }
+              else {
+                println("Unexpected length for parsed date -- data row was ${cells}, date_as_str was ${date_as_str} parsed date was ${parsed_date}");
+              }
 
               int i=2;
               while ( i < cells.length ) {
