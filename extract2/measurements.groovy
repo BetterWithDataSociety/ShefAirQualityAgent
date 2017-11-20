@@ -272,6 +272,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
           }
           catch ( Exception e ) {
+            println(data_url_str);
             e.printStackTrace()
           }
         }
