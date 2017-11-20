@@ -228,13 +228,28 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
               while ( i < cells.length ) {
                 if ( cells[i].trim().length() > 0 ) {
                   // println("Publish.. ${sensor_id} ${reading_uri_format.format(date)} ${cells[i]}");
-                  Node measurement_uri = Node.createURI(sensor_node.toString()+'/'+parsed_date);
-                  graph.add(new Triple(measurement_uri, type_pred, class_observation_value));
-                  graph.add(new Triple(measurement_uri, raw_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
-                  graph.add(new Triple(measurement_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
-                  graph.add(new Triple(measurement_uri, sensor_pred, sensor_node));
-                  graph.add(new Triple(measurement_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
-                  num_readings++;
+                  Node observation_uri = Node.createURI(sensor_node.toString()+'/'+parsed_date);
+
+                  // graph.remove(new Triple(observation_uri,com.hp.hpl.jena.graph.Node.ANY,com.hp.hpl.jena.graph.Node.ANY));
+                  // We need to clear down any old triples for this resource URI.
+                  // org.apache.jena.graph.Triple delete_pattern = new org.apache.jena.graph.Triple(observation_uri, Node.ANY, Node.ANY)
+                  // graph.find(delete_pattern).each { found_triple ->
+                  //   graph.delete(triple);
+                  // }
+
+                  def observation_uri_is_a_observation = new Triple(observation_uri, type_pred, class_observation_value);
+
+                  if ( graph.find(observation_uri_is_a_observation).hasNext() ) {
+                    println("Found existing data for ${observation_uri} not re-adding");
+                  }
+                  else {
+                    graph.add(observation_uri_is_a_observation);
+                    graph.add(new Triple(observation_uri, raw_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
+                    graph.add(new Triple(observation_uri, has_value_pred, NodeFactory.createLiteral(cells[i].trim(), XSDDatatype.XSDdouble)));
+                    graph.add(new Triple(observation_uri, sensor_pred, sensor_node));
+                    graph.add(new Triple(observation_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
+                    num_readings++;
+                  }
 
                   // Reading was made by sensor ${sensorUri}
                   // Timestamp : date.getTime()
@@ -249,7 +264,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
                     biggest_date = date.getTime()
                   }
 
-                  data_rows.add([measurement_uri, sensor_id, socrata_date_format.format(date), cells[i].trim()])
+                  data_rows.add([observation_uri, sensor_id, socrata_date_format.format(date), cells[i].trim()])
                 }
 
                 i++
@@ -303,7 +318,7 @@ def pushToSocrata(data_rows, token, un, pw) {
   try {
   
     def colheads = "ssn_measurement_id,ssn_sensor_id,ssn_measurement_time,ssn_measurement_value"
-    // data_rows.add([measurement_uri, sensor_pred, end_time_pred, cells[i].trim()])
+    // data_rows.add([observation_uri, sensor_pred, end_time_pred, cells[i].trim()])
     // https://data.sheffield.gov.uk/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb/
     // def http = new HTTPBuilder( 'https://data.sheffield.gov.uk' )
     def http = new HTTPBuilder( 'https://data.sheffield.gov.uk' )
