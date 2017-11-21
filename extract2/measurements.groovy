@@ -239,7 +239,9 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
                   def observation_uri_is_a_observation = new Triple(observation_uri, type_pred, class_observation_value);
 
-                  if ( graph.find(observation_uri_is_a_observation).hasNext() ) {
+                  // graph.find seems to leave a statement open
+                  // if ( graph.find(observation_uri_is_a_observation).hasNext() ) {
+                  if ( 1==2 ) {
                     println("Found existing data for ${observation_uri} not re-adding");
                   }
                   else {
