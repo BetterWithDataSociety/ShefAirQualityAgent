@@ -363,10 +363,15 @@ def processStaticProperties() {
         lon:'-1.463957' ],
     ]
 
+    Node sensor_location_type_property = Node.createURI('uri://opensheffield.org/properties#locationType');
+    Node sensor_time_resolution_property = Node.createURI('uri://opensheffield.org/properties#timeResolution');
+
     sensors.each {
       Node sensorUri = Node.createURI(it.uri);
       graph.add(new Triple(sensorUri, lat_pred, Node.createLiteral(it.lat)));
       graph.add(new Triple(sensorUri, lon_pred, Node.createLiteral(it.lon)));
+      graph.add(new Triple(sensorUri, sensor_location_type_property, Node.createLiteral('Fixed')));
+      graph.add(new Triple(sensorUri, sensor_time_resolution_property, Node.createLiteral('Minute')));
     }
   
     graph.close();
