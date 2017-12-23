@@ -45,23 +45,22 @@ import org.codehaus.groovy.runtime.MethodClosure
 
 
 
-// Register a parser for text/csv
-// http.parser.'text/csv' = { resp ->
-//   return new CSVReader( new InputStreamReader( resp.entity.content,
-//                                 ParserRegistry.getCharset( resp ) ) )
-// }
+/** Query:
+ *
+ *  http://localhost:8890/sparql?default-graph-uri=&query=select+distinct+%3Fg+%3Fs+%3Fp+%3Fo+where+%7B+graph+%3Fg+%7B+%3Fs+%3Fp+%3Fo.+%3Fs+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23SensingDevice%3E+%7D+%7D+LIMIT+100&format=text%2Fhtml&timeout=0&debug=on
+ *
+ * See https://jena.apache.org/tutorials/sparql_datasets.html
+ * select distinct ?g ?s ?p ?o where { graph ?g { ?s ?p ?o. ?s a <http://purl.oclc.org/NET/ssnx/ssn#SensingDevice> } } LIMIT 100
+ * select distinct ?g ?s ?p ?o where { graph ?g { ?s ?p ?o. ?s a <http://purl.oclc.org/NET/ssnx/ssn#ObservationValue> } } LIMIT 100
 
-// Query:
-// http://localhost:8890/sparql?default-graph-uri=&query=select+distinct+%3Fg+%3Fs+%3Fp+%3Fo+where+%7B+graph+%3Fg+%7B+%3Fs+%3Fp+%3Fo.+%3Fs+a+%3Chttp%3A%2F%2Fpurl.oclc.org%2FNET%2Fssnx%2Fssn%23SensingDevice%3E+%7D+%7D+LIMIT+100&format=text%2Fhtml&timeout=0&debug=on
-// See https://jena.apache.org/tutorials/sparql_datasets.html
-// select distinct ?g ?s ?p ?o where { graph ?g { ?s ?p ?o. ?s a <http://purl.oclc.org/NET/ssnx/ssn#SensingDevice> } } LIMIT 100
-// select distinct ?g ?s ?p ?o where { graph ?g { ?s ?p ?o. ?s a <http://purl.oclc.org/NET/ssnx/ssn#ObservationValue> } } LIMIT 100
+ * All observation values
+ * select distinct ?g ?s ?observationValue where { graph ?g { ?s <http://purl.oclc.org/NET/ssnx/ssn#hasValue> ?observationValue. ?s a <http://purl.oclc.org/NET/ssnx/ssn#ObservationValue> } } LIMIT 100
+ *
+ * Different base URLs over time
+ * def the_base_url = "http://sheffieldairquality.gen2training.co.uk/sheffield/index.html"
+ * def the_base_url = "http://sheffieldairquality.gen2training.co.uk/sheffield/content.html"
+ */
 
-// All observation values
-// select distinct ?g ?s ?observationValue where { graph ?g { ?s <http://purl.oclc.org/NET/ssnx/ssn#hasValue> ?observationValue. ?s a <http://purl.oclc.org/NET/ssnx/ssn#ObservationValue> } } LIMIT 100
-
-// def the_base_url = "http://sheffieldairquality.gen2training.co.uk/sheffield/index.html"
-// def the_base_url = "http://sheffieldairquality.gen2training.co.uk/sheffield/content.html"
 def the_base_url = "http://sheffieldairquality.gen2training.co.uk"
 
 println("Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy SocrataToken SocrataUn Socrata Pw \nTo avoid startup lag");
