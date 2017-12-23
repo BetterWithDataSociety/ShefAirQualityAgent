@@ -197,7 +197,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
     if ( delta_only ) {
       if ( int_start_date < two_months_ago ) {
-        println("Rounding start date.. this should be commented out if doing a full re-population");
+        println("Running in delta mode -- restrict measurements to last 2 months");
         int_start_date = two_months_ago
       }
     }
