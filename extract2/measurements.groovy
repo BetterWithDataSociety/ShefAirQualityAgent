@@ -239,9 +239,9 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
                   def observation_uri_is_a_observation = new Triple(observation_uri, type_pred, class_observation_value);
 
-                  // graph.find seems to leave a statement open
-                  // if ( graph.find(observation_uri_is_a_observation).hasNext() ) {
-                  if ( 1==2 ) {
+                  // graph.find seems to leave a statement open, use i.close to close it
+                  def i = graph.find(observation_uri_is_a_observation);
+                  if ( i.hasNext() ) {
                     println("Found existing data for ${observation_uri} not re-adding");
                   }
                   else {
@@ -252,6 +252,8 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
                     graph.add(new Triple(observation_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
                     num_readings++;
                   }
+
+                  i.close()
 
                   // Reading was made by sensor ${sensorUri}
                   // Timestamp : date.getTime()
