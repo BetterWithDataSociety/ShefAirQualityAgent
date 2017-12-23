@@ -89,23 +89,14 @@ if (options.h) {
 
 def the_base_url = "http://sheffieldairquality.gen2training.co.uk"
 
-println("Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy SocrataToken SocrataUn Socrata Pw \nTo avoid startup lag");
-
-
-println("Starting..");
-if ( args.length == 4 ) {
-  doStep1(args[0], args[1], args[2], args[3])
-}
-else {
-  doStep1(null,null,null,'N');
-}
+doStep1(options.token, options.user, options.password, options.d ? true : false)
 
 println("Done..");
 System.exit(0);
 
-def doStep1(token,un,pw,delta) {
+def doStep1(token,un,pw,delta_only) {
 
-  println("Finding max timestamp...");
+  println("Step1(${token},${un},${pw},${delta_only}");
 
   // Query the store for all sensors on platform "scc_air_quality"
   try {
@@ -139,7 +130,7 @@ def doStep1(token,un,pw,delta) {
         Node n = Node.createURI(sensor.getURI())
 
         // def resut_of_get_readings = getReadings(graph, n, lastCheck.toString(), max_ts_value.toString(), sensorId.toString());
-        def resut_of_get_readings = getReadings(graph, n, lastCheck.toString(), max_ts_value, sensorId.toString(), token, un, pw);
+        def resut_of_get_readings = getReadings(graph, n, lastCheck.toString(), max_ts_value, sensorId.toString(), token, un, pw, delta_only);
 
         if ( resut_of_get_readings  ) {
           if ( resut_of_get_readings.largestTimestamp ) {
@@ -175,7 +166,7 @@ def doStep1(token,un,pw,delta) {
   }
 }
 
-def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, token, un, pw) {
+def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, token, un, pw, delta_only) {
   println("getReadings for ${sensor_id} since ${last_check} higest timestamp so far is ${highest_timestamp}");
   def num_readings = 0;
   def biggest_date = 0;
@@ -204,10 +195,12 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
     def two_months_ago = new Date( System.currentTimeMillis() - ( 1000*60*60*24*60 ) )
 
-    // if ( int_start_date < two_months_ago ) {
-    //   println("Rounding start date.. this should be commented out if doing a full re-population");
-    //   int_start_date = two_months_ago
-    // }
+    if ( delta_only ) {
+      if ( int_start_date < two_months_ago ) {
+        println("Rounding start date.. this should be commented out if doing a full re-population");
+        int_start_date = two_months_ago
+      }
+    }
 
     // If this is more than 2 months in the past, round it.
     def from  = sdf.format(int_start_date);
