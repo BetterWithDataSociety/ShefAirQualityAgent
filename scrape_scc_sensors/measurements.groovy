@@ -220,6 +220,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
     data_url.withReader { br ->
       println("Reading response lines, query was \n"+data_url_str+"\n\n");
       while ( ( line = br.readLine() ) != null ) {
+
         if ( line.startsWith( 'EOF') )
           process=false;
 
@@ -288,6 +289,9 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
                   }
 
                 }
+                else {
+                  // println("No value");
+                }
 
                 i++
               }
@@ -310,14 +314,22 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
           if ( ( token != null ) && ( data_rows.size() > 0 ) ) {
             pushToSocrata(data_rows, token, un, pw);
           }
+          else {
+            println("Skip socrata publish - no token or no data (${token}/${data_rows.size()}");
+          }
+
           data_rows = []
         }
       }
     }
 
-    if ( token != null ) {
+    if ( ( token != null ) && ( data_rows.size() > 0 ) ) {
       pushToSocrata(data_rows, token, un, pw);
     }
+    else {
+      println("Skip socrata publish - no token or no data (${token}/${data_rows.size()}");
+    }
+
     println("Max timestamp for ${sensor_id} : ${reading_uri_format.format(new Date(biggest_date))} added ${num_readings} observations");
   }
   catch ( Exception e ) {
@@ -333,7 +345,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
 def pushToSocrata(data_rows, token, un, pw) {
 
-  println("Pushing to socrata [${token},${un},${pw}]");
+  println("\n\nPushing to socrata [${token},${un},${pw}] - ${data_rows.size()} rows\n\n");
 
   if ( data_rows == null || data_rows.size() == 0 )
     return;
