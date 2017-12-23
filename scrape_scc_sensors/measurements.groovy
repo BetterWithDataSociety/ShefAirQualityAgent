@@ -1,10 +1,10 @@
+#!/usr/bin/env groovy
+
+@GrabResolver(name='central', root='http://central.maven.org/maven2/')
 @Grapes([
-    // @GrabResolver(name='central', root='http://central.maven.org/maven2/'),
-    @GrabResolver(name='mvnRepository', root='http://central.maven.org/maven2/'),
     @Grab(group='org.slf4j', module='slf4j-api', version='1.7.6'),
     @Grab(group='org.slf4j', module='jcl-over-slf4j', version='1.7.6'),
     @Grab(group='net.sourceforge.nekohtml', module='nekohtml', version='1.9.14'),
-    // @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.5.1'),
     @Grab(group='org.codehaus.groovy.modules.http-builder', module='http-builder', version='0.7.1'),
     @Grab(group='xerces', module='xercesImpl', version='2.9.1'),
     @Grab(group='org.apache.jena', module='jena-tdb', version='1.0.2'),
@@ -61,23 +61,49 @@ import org.codehaus.groovy.runtime.MethodClosure
  * def the_base_url = "http://sheffieldairquality.gen2training.co.uk/sheffield/content.html"
  */
 
+
+def cli = new CliBuilder(usage: 'measurements.groovy [-h] [-t socrata_token] [-u socrata_user] [-p socrata_password] [-d]')
+// Create the list of options.
+cli.with {
+        h longOpt: 'help', 'Show usage information'
+        t longOpt: 'token', args: 1, argName: 'token', 'Socrata Token', required:false
+        u longOpt: 'user', args: 1, argName: 'user', 'Socrata Username', required:false
+        p longOpt: 'password', args: 1, argName: 'password', 'Socrata Password', required:false
+        d longOpt: 'delta', args: 0, argName: 'delta', 'Only process a delta, rather than the full import', required:false
+}
+
+def options = cli.parse(args)
+if (!options) {
+  println("No options");
+  return
+}
+else {
+  println(options)
+}
+
+// Show usage text when -h or --help option is used.
+if (options.h) {
+  cli.usage()
+  return
+}
+
 def the_base_url = "http://sheffieldairquality.gen2training.co.uk"
 
 println("Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy SocrataToken SocrataUn Socrata Pw \nTo avoid startup lag");
 
 
 println("Starting..");
-if ( args.length == 3 ) {
-  doStep1(args[0], args[1], args[2])
+if ( args.length == 4 ) {
+  doStep1(args[0], args[1], args[2], args[3])
 }
 else {
-  doStep1(null,null,null);
+  doStep1(null,null,null,'N');
 }
 
 println("Done..");
 System.exit(0);
 
-def doStep1(token,un,pw) {
+def doStep1(token,un,pw,delta) {
 
   println("Finding max timestamp...");
 
@@ -239,8 +265,8 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
                   def observation_uri_is_a_observation = new Triple(observation_uri, type_pred, class_observation_value);
 
                   // graph.find seems to leave a statement open, use i.close to close it
-                  def i = graph.find(observation_uri_is_a_observation);
-                  if ( i.hasNext() ) {
+                  def existing_observation_iterator = graph.find(observation_uri_is_a_observation);
+                  if ( existing_observation_iterator.hasNext() ) {
                     println("Found existing data for ${observation_uri} not re-adding");
                   }
                   else {
@@ -250,9 +276,10 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
                     graph.add(new Triple(observation_uri, sensor_pred, sensor_node));
                     graph.add(new Triple(observation_uri, end_time_pred, NodeFactory.createLiteral("${reading_date_format.format(date)}")));
                     num_readings++;
+                    data_rows.add([observation_uri, sensor_id, socrata_date_format.format(date), cells[i].trim()])
                   }
 
-                  i.close()
+                  existing_observation_iterator.close()
 
                   // Reading was made by sensor ${sensorUri}
                   // Timestamp : date.getTime()
@@ -267,7 +294,6 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
                     biggest_date = date.getTime()
                   }
 
-                  data_rows.add([observation_uri, sensor_id, socrata_date_format.format(date), cells[i].trim()])
                 }
 
                 i++
@@ -288,7 +314,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
         if ( ( row % 10000 ) == 0 ) {
           println("${row} rows, ${num_readings} observations for ${sensor_id} so far. Max timestamp: ${reading_uri_format.format(new Date(biggest_date))}");
-          if ( token != null ) {
+          if ( ( token != null ) && ( data_rows.size() > 0 ) ) {
             pushToSocrata(data_rows, token, un, pw);
           }
           data_rows = []
