@@ -330,7 +330,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
       println("Skip socrata publish - no token or no data (${token}/${data_rows.size()}");
     }
 
-    println("Max timestamp for ${sensor_id} : ${reading_uri_format.format(new Date(biggest_date))} added ${num_readings} observations");
+    println("\n\nMax timestamp for ${sensor_id} : ${reading_uri_format.format(new Date(biggest_date))} added ${num_readings} observations\n\n");
   }
   catch ( Exception e ) {
     e.printStackTrace();
