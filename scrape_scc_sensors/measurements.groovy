@@ -399,7 +399,7 @@ def pushToSocrata(data_rows, token, un, pw) {
     http.request( POST ) { req ->
       // uri.path = '/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb.json'
       // uri.path = '/resource/mnz9-msrb.json'
-      uri.path = '/resource/je7y-4vsq.csv'
+      uri.path = '/resource/je7y-4vsq.json'
       query:['method':'append']
       headers.'Authorization' = "Basic ${auth_str}"
       headers.'X-App-Token' = token
