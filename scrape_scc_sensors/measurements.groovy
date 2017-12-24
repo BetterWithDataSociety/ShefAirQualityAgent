@@ -368,12 +368,12 @@ def pushToSocrata(data_rows, token, un, pw) {
     def sw = new StringWriter()
     sw.write(colheads)
     data_rows.each{ row ->
-      sw.write('\r\n"'+row[0]+'"');
+      sw.write('\n"'+row[0]+'"');
       sw.write(',"'+row[1]+'"');
       sw.write(',"'+row[2]+'"');
       sw.write(','+row[3]+'');
     }
-    sw.write('\r\n');
+    sw.write('\n');
   
     def content = sw.toString()
     println("\n\nUpload string:");
@@ -414,7 +414,7 @@ def pushToSocrata(data_rows, token, un, pw) {
       }
   
       response.failure = { resp ->
-          println("\n\n****Failure: ${resp.statusLine} ${resp.status} ${resp}\n\n");
+          println("\n\n****Failure: line:${resp.statusLine} code:${resp.status} fullresp:${resp}\n\n");
       }
     }
   }
