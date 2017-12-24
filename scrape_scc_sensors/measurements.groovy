@@ -393,11 +393,14 @@ def pushToSocrata(data_rows, token, un, pw) {
     def auth_str = "${un}:${pw}".bytes.encodeBase64().toString()
 
     println("Auth header: ${auth_str}");
+
+    // https://dev.socrata.com/blog/2015/01/11/soda-sensor-push.html
   
     http.request( POST ) { req ->
       // uri.path = '/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb.json'
       // uri.path = '/resource/mnz9-msrb.json'
-      uri.path = '/resource/je7y-4vsq.json'
+      uri.path = '/resource/je7y-4vsq.csv'
+      query:['method':'append']
       headers.'Authorization' = "Basic ${auth_str}"
       headers.'X-App-Token' = token
       requestContentType = 'text/csv'
