@@ -96,7 +96,7 @@ System.exit(0);
 
 def doStep1(token,un,pw,delta_only) {
 
-  println("Step1(${token},${un},${pw},${delta_only}");
+  println("Step1(token:${token},un:${un},pw:${pw},delta:${delta_only}");
 
   // Query the store for all sensors on platform "scc_air_quality"
   try {
