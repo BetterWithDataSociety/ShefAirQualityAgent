@@ -197,7 +197,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
     if ( delta_only ) {
       if ( int_start_date < two_months_ago ) {
-        println("Rounding start date.. this should be commented out if doing a full re-population");
+        println("Running in delta mode -- restrict measurements to last 2 months");
         int_start_date = two_months_ago
       }
     }
@@ -220,6 +220,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
     data_url.withReader { br ->
       println("Reading response lines, query was \n"+data_url_str+"\n\n");
       while ( ( line = br.readLine() ) != null ) {
+
         if ( line.startsWith( 'EOF') )
           process=false;
 
@@ -288,6 +289,9 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
                   }
 
                 }
+                else {
+                  // println("No value");
+                }
 
                 i++
               }
@@ -310,15 +314,23 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
           if ( ( token != null ) && ( data_rows.size() > 0 ) ) {
             pushToSocrata(data_rows, token, un, pw);
           }
+          else {
+            println("Skip socrata publish - no token or no data (${token}/${data_rows.size()}");
+          }
+
           data_rows = []
         }
       }
     }
 
-    if ( token != null ) {
+    if ( ( token != null ) && ( data_rows.size() > 0 ) ) {
       pushToSocrata(data_rows, token, un, pw);
     }
-    println("Max timestamp for ${sensor_id} : ${reading_uri_format.format(new Date(biggest_date))} added ${num_readings} observations");
+    else {
+      println("Skip socrata publish - no token or no data (${token}/${data_rows.size()}");
+    }
+
+    println("\n\nMax timestamp for ${sensor_id} : ${reading_uri_format.format(new Date(biggest_date))} added ${num_readings} observations\n\n");
   }
   catch ( Exception e ) {
     e.printStackTrace();
@@ -333,7 +345,7 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
 def pushToSocrata(data_rows, token, un, pw) {
 
-  println("Pushing to socrata [${token},${un},${pw}]");
+  println("\n\nPushing to socrata [${token},${un},${pw}] - ${data_rows.size()} rows\n\n");
 
   if ( data_rows == null || data_rows.size() == 0 )
     return;
@@ -386,7 +398,8 @@ def pushToSocrata(data_rows, token, un, pw) {
   
     http.request( POST ) { req ->
       // uri.path = '/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb.json'
-      uri.path = '/resource/mnz9-msrb.csv'
+      // uri.path = '/resource/mnz9-msrb.json'
+      uri.path = '/resource/je7y-4vsq.csv'
       query:['method':'append']
       headers.'Authorization' = "Basic ${auth_str}"
       headers.'X-App-Token' = token
