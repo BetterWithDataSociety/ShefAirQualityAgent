@@ -100,6 +100,11 @@ def http = new HTTPBuilder( 'http://www.bgs.ac.uk' )
 
 Collection<Point> points = [];
 
+double max_lat=-1000;
+double most_westerly_lon=-1000;
+double min_lat=1000;
+double most_easterly_lon=1000;
+
 while (nl) {
   if ( nl[0] == 'TUBE' ) {
     println("${section} ${nl[1]} ${nl[2]} ${nl[3]}.");
@@ -131,8 +136,14 @@ while (nl) {
             output_row.add(nl[i]);
           }
 
+          if ( lat > max_lat ) max_lat = lat;
+          if ( lon > most_westerly_lon ) most_westerly_lon = lon;
+          if ( lat < min_lat ) min_lat = lat;
+          if ( lon < most_easterly_lon ) most_easterly_lon = lon;
+
           println(output_row);
-          points.add(new de.alsclo.voronoi.graph.Point(lat,lon));
+          // Remember latitude = Y, Lon=X
+          points.add(new de.alsclo.voronoi.graph.Point(lon,lat));
         }
       }
 
@@ -145,9 +156,26 @@ while (nl) {
   nl = r.readNext()
 }
 
-// Compute voroni diagram
-def diagram = new Voronoi(points);
+println("After processing max_lat=${max_lat} most_westerly_lon=${most_westerly_lon} min_lat=${min_lat} most_easterly_lon=$most_easterly_lon{}");
 
+// Compute voroni diagram
+def voronoi = new Voronoi(points);
+
+double bb_x = most_easterly_lon-0.01d // Max(neg lon) == most easterly point (?)
+double bb_y = min_lat-0.01d 
+double bb_width = most_westerly_lon-most_easterly_lon+0.02d
+double bb_height = max_lat-min_lat+0.02d
+
+println("applyBoundingBox(x:${bb_x},y:${bb_y},w:${bb_width},h:${bb_height}) -- x2=${bb_x+bb_width} y2=${bb_y+bb_height}");
+
+
+def bound_voronoi = voronoi  // Because applyBoundingBox throws not implemented...
+// def bound_voronoi = voronoi.applyBoundingBox(bb_x,bb_y,bb_width,bb_height);
+
+def graph =  bound_voronoi.getGraph();
+// Mix java8 lambdas and groovy closures ;) the Point toString method uses f2.2 as a patter, but the full double value
+// is still available. What we need to do here is to add each edge to the 2 sites that it separates
+graph.edgeStream().forEach( { println( "s1:${it.getSite1()} s2:${it.getSite2()} p1:${it.getA()} p2:${it.getB()}" ) } );
 
 println(". done");
 
