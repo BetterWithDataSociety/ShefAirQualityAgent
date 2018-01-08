@@ -34,3 +34,6 @@ Change tube lines to quoted strings with northig and easting
 
 :g/TUBE:/s/TUBE:\(.*\) \([0-9][0-9][0-9][0-9][0-9][0-9]\) \([0-9][0-9][0-9][0-9][0-9][0-9]\)/"TUBE","\1",\2,\3/
 
+API to convert E/N to lat/lon
+http://www.bgs.ac.uk/data/webservices/CoordConvert_LL_BNG.cfc?method=BNGtoLatLng&easting=[six figure number]&northing=[six figure number]
+
