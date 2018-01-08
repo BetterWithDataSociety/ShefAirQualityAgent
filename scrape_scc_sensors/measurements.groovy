@@ -345,10 +345,11 @@ def getReadings(graph, sensor_node, last_check, highest_timestamp, sensor_id, to
 
 def pushToSocrata(data_rows, token, un, pw) {
 
-  println("\n\nPushing to socrata [${token},${un},${pw}] - ${data_rows.size()} rows\n\n");
 
   if ( data_rows == null || data_rows.size() == 0 )
     return;
+
+  println("\n\nPushing to socrata [${token},${un},${pw}] - ${data_rows.size()} rows\n\n");
 
   try {
   
@@ -368,6 +369,7 @@ def pushToSocrata(data_rows, token, un, pw) {
     def sw = new StringWriter()
     sw.write(colheads)
     data_rows.each{ row ->
+      println("Adding ${row}");
       sw.write('\n"'+row[0]+'"');
       sw.write(',"'+row[1]+'"');
       sw.write(',"'+row[2]+'"');
@@ -394,14 +396,17 @@ def pushToSocrata(data_rows, token, un, pw) {
 
     println("Auth header: ${auth_str}");
 
+    // https://dev.socrata.com/publishers/upsert.html
     // https://dev.socrata.com/blog/2015/01/11/soda-sensor-push.html
   
     http.request( POST ) { req ->
       // uri.path = '/Environment/Live-Air-Quality-Data-Stream/mnz9-msrb.json'
       // uri.path = '/resource/mnz9-msrb.json'
-      uri.path = '/resource/je7y-4vsq.json'
+      uri.path = '/resource/mnz9-msrb.json'
+      // uri.path = '/resource/vy52-yr3x.json'     // This is the pending dataset
+      // uri.path = '/resource/je7y-4vsq.json'  // This is the published dataset
       query:['method':'append']
-      headers.'Authorization' = "Basic ${auth_str}"
+      headers.'Authorization' = "Basic ${auth_str}".toString()
       headers.'X-App-Token' = token
       requestContentType = 'text/csv'
       // send 'text/csv',  content
