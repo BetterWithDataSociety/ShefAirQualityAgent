@@ -16,7 +16,8 @@
     @Grab(group='org.apache.jena', module='jena-security', version='2.11.2'),
     @Grab(group='org.apache.jena', module='jena-text', version='1.0.1'),
     @Grab(group='virtuoso', module='virtjena', version='2'),
-    @Grab(group='virtuoso', module='virtjdbc', version='4.1')
+    @Grab(group='virtuoso', module='virtjdbc', version='4.1'),
+    @Grab(group='de.alsclo', module='voronoi-java', version='1.0')
 ])
 
 import groovyx.net.http.*
@@ -36,6 +37,8 @@ import java.text.SimpleDateFormat;
 import au.com.bytecode.opencsv.CSVReader
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
 import groovyx.net.http.HTTPBuilder
+import de.alsclo.voronoi.Voronoi
+import de.alsclo.voronoi.graph.Point;
 
 def cli = new CliBuilder(usage: 'measurements.groovy [-h] [-f file]')
 // Create the list of options.
@@ -67,7 +70,7 @@ String [] nl;
 String [] out_header = [
   'area',
   'name',
-  'easting'
+  'easting',
   'northing',
   'latitude',
   'longitude',
@@ -94,6 +97,9 @@ nl = r.readNext()
 
 def section=null;
 def http = new HTTPBuilder( 'http://www.bgs.ac.uk' )
+
+Collection<Point> points = [];
+
 while (nl) {
   if ( nl[0] == 'TUBE' ) {
     println("${section} ${nl[1]} ${nl[2]} ${nl[3]}.");
@@ -126,6 +132,7 @@ while (nl) {
           }
 
           println(output_row);
+          points.add(new de.alsclo.voronoi.graph.Point(lat,lon));
         }
       }
 
@@ -137,6 +144,10 @@ while (nl) {
   }
   nl = r.readNext()
 }
+
+// Compute voroni diagram
+def diagram = new Voronoi(points);
+
 
 println(". done");
 
