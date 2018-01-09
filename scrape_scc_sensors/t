@@ -1,5 +1,0 @@
-Run as groovy -Dgroovy.grape.autoDownload=false  ./measurements.groovy
-To avoid startup lag
-Starting..
-Running query..
-Done..

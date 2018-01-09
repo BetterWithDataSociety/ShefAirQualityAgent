@@ -105,6 +105,9 @@ double most_westerly_lon=-1000;
 double min_lat=1000;
 double most_easterly_lon=1000;
 
+// A map of tubes indexed by northing and easting, a location may have > 1 tube
+def tubes_by_location = [:]
+
 while (nl) {
   if ( nl[0] == 'TUBE' ) {
     println("${section} ${nl[1]} ${nl[2]} ${nl[3]}.");
@@ -120,20 +123,21 @@ while (nl) {
           // println "Query response: ${json}"
           def lon=json.LONGITUDE
           def lat=json.LATITUDE
-          println("lat:${lat},lon:${lon}");
+          // println("lat:${lat},lon:${lon}");
 
           def output_row = [
-            section,
-            nl[1],
-            nl[2],
-            nl[3],
-            lat,
-            lon
+            section:section,
+            name:nl[1],
+            easting:nl[2],
+            northing:nl[3],
+            lat:lat,
+            lon:lon,
+            data:[]
           ]
 
           int i=4;
           for ( ; i<nl.length; i++ ) {
-            output_row.add(nl[i]);
+            output_row.data.add(nl[i]);
           }
 
           if ( lat > max_lat ) max_lat = lat;
@@ -141,9 +145,15 @@ while (nl) {
           if ( lat < min_lat ) min_lat = lat;
           if ( lon < most_easterly_lon ) most_easterly_lon = lon;
 
-          println(output_row);
+          // println(output_row);
           // Remember latitude = Y, Lon=X
           points.add(new de.alsclo.voronoi.graph.Point(lon,lat));
+
+          tubes_by_location_key = lat+','+lon
+          if ( tubes_by_location[tubes_by_location_key] == null ) {
+            tubes_by_location[tubes_by_location_key] = [location:tubes_by_location_key, tube_data:[]]
+          }
+          tubes_by_location[tubes_by_location_key].tube_data.add(output_row);
         }
       }
 
@@ -175,7 +185,16 @@ def bound_voronoi = voronoi  // Because applyBoundingBox throws not implemented.
 def graph =  bound_voronoi.getGraph();
 // Mix java8 lambdas and groovy closures ;) the Point toString method uses f2.2 as a patter, but the full double value
 // is still available. What we need to do here is to add each edge to the 2 sites that it separates
-graph.edgeStream().forEach( { println( "s1:${it.getSite1()} s2:${it.getSite2()} p1:${it.getA()} p2:${it.getB()}" ) } );
+
+// graph.edgeStream().forEach( { println( "s1:${it.getSite1()} s2:${it.getSite2()} p1:${it.getA()} p2:${it.getB()}" ) } );
+
+
+tubes_by_location.each { key, tubeloc ->
+  println(tubeloc.location);
+  tubeloc.tube_data.each { tube ->
+    println(tube);
+  }
+}
 
 println(". done");
 
