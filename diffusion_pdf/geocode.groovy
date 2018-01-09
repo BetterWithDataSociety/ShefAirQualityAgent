@@ -35,16 +35,20 @@ import com.hp.hpl.jena.rdf.model.* ;
 import com.hp.hpl.jena.graph.*;
 import java.text.SimpleDateFormat;
 import au.com.bytecode.opencsv.CSVReader
+import au.com.bytecode.opencsv.CSVWriter
 import com.hp.hpl.jena.datatypes.xsd.XSDDatatype
 import groovyx.net.http.HTTPBuilder
 import de.alsclo.voronoi.Voronoi
 import de.alsclo.voronoi.graph.Point;
 
+// ./geocode.groovy -f ./sheffield_diffusion_to_2016.csv -o sheffield_diffusion_to_2016_geocoded.csv
+
 def cli = new CliBuilder(usage: 'measurements.groovy [-h] [-f file]')
 // Create the list of options.
 cli.with {
         h longOpt: 'help', 'Show usage information'
-        f longOpt: 'file', args: 1, argName: 'file', 'Filename', required:true
+        f longOpt: 'file', args: 1, argName: 'file', 'Input Filename', required:true
+        o longOpt: 'outfile', args: 1, argName: 'outfile', 'Output Filename', required:false
 }
 
 def options = cli.parse(args)
@@ -188,13 +192,28 @@ def graph =  bound_voronoi.getGraph();
 
 // graph.edgeStream().forEach( { println( "s1:${it.getSite1()} s2:${it.getSite2()} p1:${it.getA()} p2:${it.getB()}" ) } );
 
+if ( options.outfile ) {
+  CSVWriter w = new CSVWriter( new OutputStreamWriter(new FileOutputStream(options.outfile),java.nio.charset.Charset.forName('UTF-8')) )
+  String[] colheads = [ 'dt_group', 'dt_name', 'dt_easting', 'dt_northing', 'dt_lat', 'dt_lon', 
+                      'dt_2003','dt_2004','dt_2005','dt_2006','dt_2007','dt_2008','dt_2009','dt_2010','dt_2011','dt_2012','dt_2013','dt_2014','dt_2015','dt_2016']
+                       
+  w.writeNext(colheads);
 
-tubes_by_location.each { key, tubeloc ->
-  println(tubeloc.location);
-  tubeloc.tube_data.each { tube ->
-    println(tube);
+  tubes_by_location.each { key, tubeloc ->
+    println(tubeloc.location);
+    tubeloc.tube_data.each { tube ->
+      println(tube.name);
+      def row = [ tube.section, tube.name, tube.easting, tube.northing, tube.lat, tube.lon ]
+      row.addAll(tube.data);
+
+      String[] row_data = row.collect { it.toString() } .toArray(new String[row.size()])
+      w.writeNext(row_data);
+    }
   }
+  w.close()
 }
 
+
 println(". done");
+
 
