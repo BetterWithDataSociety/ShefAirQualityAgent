@@ -1,0 +1,166 @@
+<!doctype html>
+<meta charset="utf-8" />
+
+<script src="http://codemirror.net/lib/codemirror.js"></script>
+<script src="http://codemirror.net/addon/edit/matchbrackets.js"></script>
+<script src="http://codemirror.net/mode/sparql/sparql.js"></script>
+<link rel="stylesheet" href="http://codemirror.net/lib/codemirror.css">
+
+<title>Query the Air Quality+ data repository using SPARQL</title>
+
+<h1>Query the Air Quality+ data repository using SPARQL</h1>
+
+<p>
+More SPARQL examples at <a href="https://github.com/BetterWithDataSociety/ShefAirQualityAgent/wiki/Sample-SPARQL">AQ+ on github</a>
+</p>
+
+<p>
+Sparql highlighter thanks to <a href="http://codemirror.net">CodeMirror</a>.
+</p>
+
+<p>
+Result format:
+<select name="format" id="format">
+   <option value="auto" >Auto</option>
+   <option value="text/html" selected="selected">HTML</option>
+   <option value="application/vnd.ms-excel" >Spreadsheet</option>
+   <option value="application/sparql-results+xml" >XML</option>
+   <option value="application/sparql-results+json" >JSON</option>
+   <option value="application/javascript" >Javascript</option>
+   <option value="text/turtle" >Turtle</option>
+   <option value="application/rdf+xml" >RDF/XML</option>
+   <option value="text/plain" >N-Triples</option>
+   <option value="text/csv" >CSV</option>
+   <option value="text/tab-separated-values" >TSV</option>
+</select>
+<input type="button" value="Run query" onClick="runQuery()" />
+<input type="button" value="Get link" onClick="openLink()" />
+<br />
+
+<textarea id="sparql" cols="120" rows="30">
+select ?sensor, max(?day), max(?hour), avg(?observationValue), max(?observationValue), min(?observationValue)
+where {
+  graph ?g {
+    ?s <uri://opensheffield.org/properties#sensor> ?sensor .
+    ?s a <http://purl.oclc.org/NET/ssnx/ssn#ObservationValue> .
+    ?s <http://purl.oclc.org/NET/ssnx/ssn#endTime> ?observationTime.
+    ?s <http://purl.oclc.org/NET/ssnx/ssn#hasValue> ?observationValue .
+    ?sensor <http://purl.oclc.org/NET/ssnx/ssn#MeasurementProperty> <http://dbpedia.org/resource/NO2>     .
+    BIND (bif:subseq( str( ?observationTime ),0,11) AS ?day) .
+    BIND (bif:subseq( str( ?observationTime ),11,13) AS ?hour) .
+    BIND (bif:subseq( str( ?observationTime ),0,13) AS ?dayhour) .
+    FILTER ( xsd:date(?observationTime) > xsd:date("2014-10-13") && xsd:date(?observationTime) <= xsd:date("2014-11-13") )
+  }
+}
+GROUP BY ?sensor ?dayhour
+ORDER BY ?dayhour ?sensor
+</textarea>
+
+</p>
+<hr />
+
+<iframe
+   id="result"
+   width="100%"
+   height="600"
+   frameborder="1"
+   scrolling="yes"
+   marginheight="0"
+   marginwidth="0"
+   src=""
+>
+</iframe>
+
+<script>
+
+// service parameters
+if (f = getParam("format")) {
+  var fElt = document.getElementById('format');
+  fElt.value = f;
+}
+
+if (id = getParam("pasteid")) {
+  request(id);
+}
+
+// public functions
+
+function runQuery() {
+   document.getElementById('result').src=getURL();
+}
+
+function openLink() {
+   var url = getURL();
+   var text = "Copy this link to share the query result:<br /> <a href='" + url + "'>" + url + "</a>";
+   var linkWindow = window.open("", "MsgWindow", "width=500, height=200");
+   linkWindow.document.write(text);
+   linkWindow.focus();
+}
+
+// private functions
+
+// configure the editor
+var editor = CodeMirror.fromTextArea(document.getElementById("sparql"), {
+   mode: "application/sparql-query",
+   matchBrackets: true
+});
+
+// compose URL for running SPARQL query
+function getURL() {
+   var f = document.getElementById('format').value;
+   var sparql = editor.getValue();
+   sparql = sparql.split('\r').join(' ').split('\n').join(' ');
+   return "http://apps.opensheffield.org/sparql?default-graph-uri=&timeout=0&debug=on&"+val('format',f)+"&"+val('query',sparql);
+}
+
+// make name-value pair for a query string
+function val(name,value) {
+   return name+'='+encodeURIComponent(value);
+}
+
+// Cross-site HTML5 file loading courtesy of HTML5Rocks (http://www.html5rocks.com/en/tutorials/cors/)
+// intended to load files from pastebin, doesn't work
+
+
+function request(id) {
+
+   // 1. Create XHR instance - Start
+    var xhr;
+    if (window.XMLHttpRequest) {
+        xhr = new XMLHttpRequest();
+    }
+    else if (window.ActiveXObject) {
+        xhr = new ActiveXObject("Msxml2.XMLHTTP");
+    }
+    else {
+        throw new Error("Ajax is not supported by this browser");
+    }
+    // 1. Create XHR instance - End
+
+    // 2. Define what to do when XHR feed you the response from the server - Start
+    xhr.onreadystatechange = function () {
+	    // alert(xhr.readyState + " " + xhr.status + " " + xhr.responseText)
+        if (xhr.readyState === 4) {
+            if (xhr.status == 200 && xhr.status < 300) {
+                document.getElementById("sparql").value = xhr.responseText;
+            }
+        }
+    }
+    // 2. Define what to do when XHR feed you the response from the server - End
+
+    // 3. Specify your action, location and Send to the server - Start 
+    xhr.open('POST', 'getbin.php');
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send(val("id",id));
+    // 3. Specify your action, location and Send to the server - End
+}
+
+// query string parsing thanks to jolly.exe - http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+function getParam(name) {
+   name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+   var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
+   results = regex.exec(location.search);
+   return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+</script>
